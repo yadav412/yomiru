@@ -1,15 +1,16 @@
 body{
 
-    min-height: 100vh;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* background-attachment: fixed; */
-    background-image:  url("");
+    background-attachment: fixed; 
+
     background-position: center;
     background-color: #0000007b;
-   
+    background-image: url("wood.jpg");
+
     background-size: cover;
     background-repeat: no-repeat;
     /* min-height: 100vw; */
@@ -28,11 +29,11 @@ body{
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 50px;
+    gap: 100px;
     margin-top: 20px;
 
     padding: 20px;
-    padding-top :100px;
+    padding-top :50px;
   
 }
 
@@ -85,7 +86,7 @@ body{
     margin-top: 20px;
 
     padding: 20px;
-    padding-top :100px;
+    padding-top :40px;
 
 }
 .devs{
@@ -93,7 +94,7 @@ body{
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 50px;
+    gap: 100px;
     margin-top: 20px;
     padding: 20px;
     padding-top :100px;
@@ -118,7 +119,7 @@ a:hover{
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(152, 152, 152, 0.8);
+    background-color: rgba(152, 152, 152, 0);
     padding: 20px;
     position: fixed;
     top: 0;
