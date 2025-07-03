@@ -149,7 +149,10 @@ a:hover{
 .devs-heading {
     text-align: center;
     font-size: 30px;
-    color: #ffffff;}
+    color: #ffffff;
+    margin-top: 70px;
+padding-top: 30px;}
+    
    
 
 .tracemoe{
