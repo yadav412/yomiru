@@ -9,7 +9,9 @@ body{
 
     background-position: center;
     background-color: #0000007b;
+
     background-image: url("images assets/wood.jpg");
+
 
     background-size: cover;
     background-repeat: no-repeat;
@@ -89,6 +91,7 @@ body{
     padding-top :40px;
 
 }
+
 .devs{
     display: flex;
     flex-direction: row;
@@ -245,11 +248,14 @@ a:hover{
 }
 
 
+
 .navbar{
     padding: auto;
     width: 100%;
 
 }
+
+
 .watch{
     gap : 725px;
     display: flex;

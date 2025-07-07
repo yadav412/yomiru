@@ -1,3 +1,4 @@
+
 async function testTraceMoe() {
   const imgUrl = 'images/Gomu_Gomu_no_Kong_Organ.webp';
 
@@ -119,6 +120,7 @@ async function getAnimeDetailsThenSuggest() {
     document.getElementById("malSuggestions").innerText = `No high-rated suggestions found for genre: ${anime.genres[0]}`;
   }
 }
+
 
 
 
