@@ -9,7 +9,9 @@ body{
 
     background-position: center;
     background-color: #0000007b;
-    background-image: url("wood.jpg");
+
+    background-image: url("images assets/wood.jpg");
+
 
     background-size: cover;
     background-repeat: no-repeat;
@@ -77,6 +79,18 @@ body{
 
 }
 
+.characters4{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+    margin-top: 20px;
+
+    padding: 20px;
+    padding-top :40px;
+
+}
 
 .devs{
     display: flex;
@@ -137,10 +151,7 @@ a:hover{
 .devs-heading {
     text-align: center;
     font-size: 30px;
-    color: #ffffff;
-    margin-top: 70px;
-padding-top: 30px;}
-    
+    color: #ffffff;}
    
 
 .tracemoe{
@@ -235,6 +246,13 @@ padding-top: 30px;}
     height: 200px;
 }
 
+
+
+.navbar{
+    padding: auto;
+    width: 100%;
+
+}
 
 
 .watch{

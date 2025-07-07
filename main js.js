@@ -120,8 +120,3 @@ async function getAnimeDetailsThenSuggest() {
     document.getElementById("malSuggestions").innerText = `No high-rated suggestions found for genre: ${anime.genres[0]}`;
   }
 }
-
-
-
-
-
