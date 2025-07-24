@@ -9,8 +9,7 @@ const app = express();
 const PORT = 3000;
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
-// CLIENT_SECRET is not required when using the PKCE flow but was previously
-// declared and unused. Removing it avoids confusion.
+const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
 let access_token = "";
@@ -74,15 +73,12 @@ app.get("/callback", async (req, res) => {
 
 // === 3. Get anime info ===
 app.get("/mal/anime-info", async (req, res) => {
-  const title = (req.query.title || "").trim();
-  if (!title) {
-    return res.status(400).json({ error: "Title query is required" });
-  }
+  const title = req.query.title;
   try {
-    const info = await axios.get("https://api.myanimelist.net/v2/anime", {
+    const info = await axios.get(`https://api.myanimelist.net/v2/anime`, {
       params: {
         q: title,
-        limit: 5,
+        limit: 10,
         fields: "start_date,end_date,synopsis"
       },
       headers: {
@@ -90,12 +86,7 @@ app.get("/mal/anime-info", async (req, res) => {
       }
     });
 
-    const anime = info.data?.data?.[0]?.node;
-    if (!anime) {
-      return res.status(404).json({ error: "Anime not found" });
-    }
-
-    res.json(anime);
+    res.json(info.data);
   } catch (err) {
     console.error("Anime info error:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to fetch anime info" });
