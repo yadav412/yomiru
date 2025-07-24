@@ -1,0 +1,261 @@
+/* Base styles */
+body {
+  margin: 0;
+  background-color: #121212;
+  background-image: url(images/naruto02.jpg);
+  background-repeat:repeat; 
+  background-blend-mode: overlay;
+  font-family: 'Poppins', sans-serif;
+  color: white;
+  
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: transparent;
+  position: relative;
+  z-index: 10;
+}
+
+.logo img {
+  height: 150px;
+  margin-top: -30px;
+  margin-left: -50px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: -70px;
+}
+
+nav button, nav input, nav a {
+  background-color: #e0363b;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  text-decoration: none;
+}
+nav button:hover, nav input:hover, nav a:hover {
+  background-color: #c72b2f;
+  scale: 1.05;
+  transition: 0.06s ease;
+}
+
+
+
+main {
+  display: flex;
+  padding: 2rem;
+}
+
+.info-box {
+  width: 700px;
+  
+
+  padding-right: 2rem;
+}
+
+.description-box {
+  background: rgb(203, 187, 181);
+  color: black;
+  border-radius: 15px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.info-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+
+}
+.info-buttons button:hover {
+  background-color: #c72b2f;
+}
+
+.info-buttons button {
+  background-color: #e0363b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.carousel-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel {
+  display: flex;
+  transition: transform 0.5s ease;
+  width: max-content;
+}
+
+.carousel img {
+  height: 300px;
+  width: 200px;
+  object-fit: cover;
+  margin-right: 1rem;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.dots {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.dots button {
+  background-color: #aaa;
+  border: none;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.dots .active {
+  background-color: #e0363b;
+}
+.vertical-carousel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: scroll;
+  height: 410px;
+  width: 500px;
+  scroll-snap-type: y mandatory;
+  padding: 1rem 0;
+  scrollbar-width: none;
+}
+
+.vertical-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-item {
+  scroll-snap-align: center;
+  opacity: 0.3;
+  transform: scale(0.9);
+  transition: all 0.4s ease;
+  margin: 1rem 0;
+  position: relative;
+  
+}
+
+.carousel-item img {
+  width: 250px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Active center item */
+.carousel-item.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+.carousel-section{
+background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 15px;
+  display: flex;
+  justify-content: center
+;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 100px;
+  padding-right: 100px;
+
+}
+
+
+/* CSS FOR GHIBLI PAGE */
+
+.ghibli-wrapper {
+  margin: auto;
+  width: 90%;
+  max-width: 1000px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 40px;
+  padding: 2rem;
+  border: 3px solid #29a9ff;
+  box-shadow: 0 0 20px rgba(41, 169, 255, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+}
+
+.carousel-ghibli {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.carousel-image {
+  width: 500px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 2rem;
+  scroll-snap-align: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.carousel-image:hover {
+  transform: scale(1.08);
+}
+
+.ghibli-info {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #1a1a1a;
+  border-radius: 20px;
+  padding: 1rem 1.5rem;
+  margin-top: 1rem;
+  max-width: 95%;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.ghibli-buttons {
+  margin-top: 1.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.ghibli-buttons button {
+  background-color: #e0363b;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:0.2s ease;
+}
+
+.ghibli-buttons button:hover {
+  background-color: #c52d2d;
+}
+
