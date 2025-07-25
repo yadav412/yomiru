@@ -3,7 +3,8 @@ const axios = require("axios");
 const cors = require("cors");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const PORT = 3000;
@@ -93,6 +94,26 @@ app.get("/mal/anime-info", async (req, res) => {
   }
 });
 
+// === NEW: Get anime info by ID ===
+app.get("/mal/anime-by-id/:id", async (req, res) => {
+  const animeId = req.params.id;
+  try {
+        const info = await axios.get(`https://api.myanimelist.net/v2/anime/${animeId}`, {
+      params: {
+        fields: "title,start_date,end_date,synopsis"
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    res.json(info.data);
+  } catch (err) {
+    console.error("Anime info by ID error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch anime info by ID" });
+  }
+});
+
 // === 4. Recommend based on genre ===
 app.get("/mal/recommend", async (req, res) => {
   const title = req.query.title;
@@ -145,6 +166,26 @@ app.get("/mal/recommend", async (req, res) => {
   }
 });
 
+// === 5. Get trending anime ===
+app.get("/mal/trending", async (req, res) => {
+  try {
+    const info = await axios.get(`https://api.myanimelist.net/v2/anime/ranking`, {
+      params: {
+        ranking_type: 'all',
+        limit: 8,
+        fields: "start_date,mean,synopsis"
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+    res.json(info.data);
+  } catch (err) {
+    console.error("Trending anime error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch trending anime" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });
@@ -160,3 +201,12 @@ function generateCodeVerifier() {
 function generateCodeChallenge(codeVerifier) {
   return base64URLEncode(crypto.createHash("sha256").update(codeVerifier).digest());
 }
+
+const imageUrl = "https://example.com/myanimeimage.jpg";
+
+fetch(`/.netlify/functions/tracemoe-proxy?url=${encodeURIComponent(imageUrl)}`)
+  .then((res) => res.json())
+  .then((data) => console.log("Trace.moe Result:", data))
+  .catch((err) => console.error("Proxy error:", err));
+
+  

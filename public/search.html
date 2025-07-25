@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - Yomiru</title>
+    <link rel="stylesheet" href="search.css">
+    <link rel="icon" type="image/png" href="images/naruto.jpg">
+</head>
+<body class="search-page">
+    <div class="navbar">
+        <div class="logo">
+            <img src="images/naruto.jpg" alt="Yomiru Logo" width="50" height="50">
+        </div>
+        <div class="navblock">
+            <a class="navlinks" href="newHomepage.html">Home</a>
+            <a class="navlinks" href="tracemoe.html">Tracemoe</a>
+            <a class="navlinks" href="anime.html">Anime</a>
+            <a class="navlinks" href="manga.html">Manga</a>
+            <a class="navlinks" href="contact.html">Contact</a>
+        </div>
+        <div class="search-button">
+            <button class="search-btn" onclick="window.location.href='search.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="search-container">
+            <div class="search-box">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="search-input" placeholder="Search...">
+            </div>
+        </div>
+
+        <div class="trending-section">
+            <div class="trending-title-container">
+                <h2 class="trending-title">Trending Anime</h2>
+            </div>
+            <div class="trending-grid" id="trending-grid">
+                <!-- Trending anime cards will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="search.js"></script>
+</body>
+</html>
