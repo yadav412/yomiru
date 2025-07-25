@@ -6,12 +6,19 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
+app.use(cors({
+  origin: "https://yomiru.netlify.app",
+  credentials: true
+}));
+
 const app = express();
 const PORT = 3000;
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
+
+console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
 
 let access_token = "";
 
@@ -24,13 +31,14 @@ app.get("/login", (req, res) => {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
-  // Store verifier in a cookie
+  console.log("Storing code_verifier:", codeVerifier);
+  // Set as cookie for use in /callback
   res.cookie("code_verifier", codeVerifier, {
     httpOnly: true,
-    maxAge: 300000, // 5 mins
+    maxAge: 300000 // 5 minutes
   });
 
-  const authUrl = `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+  const authUrl = `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=http://localhost:3000/callback&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
   res.redirect(authUrl);
 });
@@ -40,6 +48,10 @@ app.get("/callback", async (req, res) => {
   const code = req.query.code;
   const codeVerifier = req.cookies.code_verifier;
 
+  console.log("Client ID:", CLIENT_ID);
+  console.log("Redirect URI:", REDIRECT_URI);
+  console.log("Code Verifier:", codeVerifier);
+  console.log("Authorization Code:", code);
   if (!codeVerifier) {
     console.error("Missing code_verifier");
     return res.status(400).send("Missing code_verifier. Try logging in again.");
@@ -65,7 +77,7 @@ app.get("/callback", async (req, res) => {
     );
 
     access_token = tokenRes.data.access_token;
-    res.send("✅ Login successful. You can close this tab.");
+    res.redirect("http://localhost:5500/index.html");
   } catch (err) {
     console.error("❌ Token exchange failed:", err.response?.data || err.message);
     res.status(500).send("Login failed" + JSON.stringify(err.response?.data || err.message));
@@ -199,14 +211,9 @@ function generateCodeVerifier() {
 }
 
 function generateCodeChallenge(codeVerifier) {
-  return base64URLEncode(crypto.createHash("sha256").update(codeVerifier).digest());
+  return base64URLEncode(
+    crypto.createHash("sha256").update(codeVerifier).digest()
+  );
 }
 
-const imageUrl = "https://example.com/myanimeimage.jpg";
-
-fetch(`/.netlify/functions/tracemoe-proxy?url=${encodeURIComponent(imageUrl)}`)
-  .then((res) => res.json())
-  .then((data) => console.log("Trace.moe Result:", data))
-  .catch((err) => console.error("Proxy error:", err));
-
-  
+const imageUrl = "https://example.com/myanimeimage.jpg";  
