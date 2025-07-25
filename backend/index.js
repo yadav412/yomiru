@@ -151,15 +151,14 @@ app.get("/mal/trending", async (req, res) => {
   try {
     const info = await axios.get(`https://api.myanimelist.net/v2/anime/ranking`, {
       params: {
-        ranking_type: "all",
-        limit: 10, // Let's fetch 10 for a 2x5 grid
-        fields: "mean,start_date,main_picture"
+        ranking_type: 'all',
+        limit: 8,
+        fields: "start_date,mean"
       },
       headers: {
         "X-MAL-CLIENT-ID": CLIENT_ID
       }
     });
-
     res.json(info.data);
   } catch (err) {
     console.error("Trending anime error:", err.response?.data || err.message);
