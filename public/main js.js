@@ -1,9 +1,11 @@
+const API_BASE = "https://final-project-10-streams.onrender.com";
+
 function loginWithMAL() {
-  window.location.href = "http://localhost:3000/login";
+  window.location.href = `${API_BASE}/login`;
 }
 
 async function getAnimeInfo(title) {
-  const response = await fetch(`http://localhost:3000/mal/anime-info?title=${encodeURIComponent(title)}`);
+  const response = await fetch(`${API_BASE}/mal/anime-info?title=${encodeURIComponent(title)}`);
 
   const data = await response.json();
   const anime = data.data?.[0]?.node;
@@ -19,7 +21,7 @@ async function getAnimeInfo(title) {
 async function getAnimeDetailsThenSuggest() {
   const title = document.getElementById('animeSuggest').value;
 
-  const response = await fetch(`http://localhost:3000/mal/recommend?title=${encodeURIComponent(title)}`);
+  const response = await fetch(`${API_BASE}/mal/recommend?title=${encodeURIComponent(title)}`);
   const data = await response.json();
 
   if (!data.anime) {
@@ -59,7 +61,7 @@ function cleanTitle(title) {
 }
 
 async function getAnimeInfoById(malId) {
-  const response = await fetch(`http://localhost:3000/mal/anime-by-id/${malId}`);
+  const response = await fetch(`${API_BASE}/mal/anime-by-id/${malId}`);
   const data = await response.json();
   return data.synopsis;
 }

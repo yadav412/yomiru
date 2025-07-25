@@ -6,6 +6,11 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
+app.use(cors({
+  origin: "https://yomiru.netlify.app",
+  credentials: true
+}));
+
 const app = express();
 const PORT = 3000;
 
@@ -211,11 +216,4 @@ function generateCodeChallenge(codeVerifier) {
   );
 }
 
-const imageUrl = "https://example.com/myanimeimage.jpg";
-
-fetch(`/.netlify/functions/tracemoe-proxy?url=${encodeURIComponent(imageUrl)}`)
-   .then((res) => res.json())
-   .then((data) => console.log("Trace.moe Result:", data))
-   .catch((err) => console.error("Proxy error:", err));
-
-  
+const imageUrl = "https://example.com/myanimeimage.jpg";  
