@@ -69,16 +69,25 @@ function performSearch(searchTerm) {
     }, 1000);
 }
 
-function loadTrendingAnime() {
+async function loadTrendingAnime() {
     console.log('Loading trending anime...');
-    // showLoadingCards('trending-grid'); // Flashing cards removed
-    
-    // TODO: Replace with actual API call
-    // For now, simulate API call with timeout
-    setTimeout(() => {
-        const mockTrending = generateMockTrendingAnime();
-        displayTrendingAnime(mockTrending);
-    }, 1500);
+    try {
+        const response = await fetch('http://localhost:3000/mal/trending');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const animeList = data.data.map(item => ({
+            title: item.node.title,
+            image: item.node.main_picture ? item.node.main_picture.large || item.node.main_picture.medium : 'images/placeholder.jpg',
+            year: item.node.start_date ? item.node.start_date.split('-')[0] : 'N/A',
+            rating: item.node.mean || 'N/A'
+        }));
+        displayTrendingAnime(animeList);
+    } catch (error) {
+        console.error('Failed to load trending anime:', error);
+        // Optionally, display an error message to the user
+    }
 }
 
 function showSearchResults() {

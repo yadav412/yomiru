@@ -3,7 +3,8 @@ const axios = require("axios");
 const cors = require("cors");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const PORT = 3000;
@@ -142,6 +143,27 @@ app.get("/mal/recommend", async (req, res) => {
   } catch (err) {
     console.error("Recommendation error:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to fetch recommendations" });
+  }
+});
+
+// === 5. Get trending anime ===
+app.get("/mal/trending", async (req, res) => {
+  try {
+    const info = await axios.get(`https://api.myanimelist.net/v2/anime/ranking`, {
+      params: {
+        ranking_type: "all",
+        limit: 10, // Let's fetch 10 for a 2x5 grid
+        fields: "mean,start_date,main_picture"
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    res.json(info.data);
+  } catch (err) {
+    console.error("Trending anime error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch trending anime" });
   }
 });
 
