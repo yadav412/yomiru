@@ -1,6 +1,7 @@
 // Search functionality
 let searchTimeout;
 let currentSearchTerm = '';
+const API_BASE = "https://final-project-10-streams.onrender.com";
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');
@@ -72,7 +73,7 @@ function performSearch(searchTerm) {
 async function loadTrendingAnime() {
     console.log('Loading trending anime...');
     try {
-        const response = await fetch('http://localhost:3000/mal/trending');
+        const response = await fetch(`${API_BASE}/mal/trending`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
