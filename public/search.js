@@ -284,4 +284,5 @@ function generateMockTrendingAnime() {
             rating: '8.9'
         }
     ];
+    
 }
