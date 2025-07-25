@@ -81,7 +81,8 @@ async function loadTrendingAnime() {
             title: item.node.title,
             image: item.node.main_picture ? item.node.main_picture.large || item.node.main_picture.medium : 'images/placeholder.jpg',
             year: item.node.start_date ? item.node.start_date.split('-')[0] : 'N/A',
-            rating: item.node.mean || 'N/A'
+            rating: item.node.mean || 'N/A',
+            synopsis: item.node.synopsis || 'No summary available.'
         }));
         displayTrendingAnime(animeList);
     } catch (error) {
@@ -156,14 +157,22 @@ function createAnimeCard(anime) {
     card.onclick = () => openAnimeDetails(anime);
     
     card.innerHTML = `
-        <div class="card-image-container">
-            <img src="${anime.image}" alt="${anime.title}" class="card-image" onerror="this.style.display='none';">
-        </div>
-        <div class="anime-card-content">
-            <div class="anime-card-title">${anime.title}</div>
-            <div class="anime-card-info">
-                <span class="anime-year">${anime.year || 'N/A'}</span>
-                <span class="anime-rating">${anime.rating || 'N/A'}</span>
+        <div class="anime-card-inner">
+            <div class="anime-card-front">
+                <div class="card-image-container">
+                    <img src="${anime.image}" alt="${anime.title}" class="card-image" onerror="this.style.display='none';">
+                </div>
+                <div class="anime-card-content">
+                    <div class="anime-card-title">${anime.title}</div>
+                    <div class="anime-card-info">
+                        <span class="anime-year">${anime.year || 'N/A'}</span>
+                        <span class="anime-rating">${anime.rating || 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="anime-card-back">
+                <h3>${anime.title}</h3>
+                <p>${anime.synopsis}</p>
             </div>
         </div>
     `;

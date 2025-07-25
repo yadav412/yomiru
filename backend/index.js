@@ -153,7 +153,7 @@ app.get("/mal/trending", async (req, res) => {
       params: {
         ranking_type: 'all',
         limit: 8,
-        fields: "start_date,mean"
+        fields: "start_date,mean,synopsis"
       },
       headers: {
         "X-MAL-CLIENT-ID": CLIENT_ID
