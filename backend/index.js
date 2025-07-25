@@ -26,6 +26,11 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
+// === Ping route for uptime monitoring ===
+app.get("/ping", (req, res) => {
+  res.send("OK");
+});
+
 // === 1. Login route ===
 app.get("/login", (req, res) => {
   const codeVerifier = generateCodeVerifier();
