@@ -94,6 +94,26 @@ app.get("/mal/anime-info", async (req, res) => {
   }
 });
 
+// === NEW: Get anime info by ID ===
+app.get("/mal/anime-by-id/:id", async (req, res) => {
+  const animeId = req.params.id;
+  try {
+        const info = await axios.get(`https://api.myanimelist.net/v2/anime/${animeId}`, {
+      params: {
+        fields: "title,start_date,end_date,synopsis"
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    res.json(info.data);
+  } catch (err) {
+    console.error("Anime info by ID error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch anime info by ID" });
+  }
+});
+
 // === 4. Recommend based on genre ===
 app.get("/mal/recommend", async (req, res) => {
   const title = req.query.title;

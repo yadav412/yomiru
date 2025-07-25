@@ -49,47 +49,28 @@ async function getAnimeDetailsThenSuggest() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("traceButton").addEventListener("click", testTraceMoe);
-  document.getElementById("malLoginButton").addEventListener("click", loginWithMAL);
-  document.getElementById("animeSuggestButton").addEventListener("click", getAnimeDetailsThenSuggest);
-});
-
-
-function toggleSearch() {
-  // You can implement search functionality here
-  // For now, it will just show an alert
-  const searchTerm = prompt("Enter your search term:");
-  if (searchTerm) {
-    alert(`Searching for: ${searchTerm}`);
-    // Here you could redirect to a search page or perform a search
-    // window.location.href = `search.html?q=${encodeURIComponent(searchTerm)}`;
-  }
+function cleanTitle(title) {
+  // Remove bracketed and parenthesized content (e.g., [ReinForce], (BDRip))
+  let cleanedTitle = title.replace(/\[.*?\]/g, "").replace(/\(.*?\)/g, "");
+  // Remove common file extensions
+  cleanedTitle = cleanedTitle.replace(/\.mp4|\.mkv|\.avi|\.flac/gi, "");
+  // Trim whitespace from the start and end
+  return cleanedTitle.trim();
 }
 
-function toggleSearchBar() {
-  const searchBar = document.querySelector('.searchbar');
-  if (searchBar.style.display === 'none' || searchBar.style.display === '') {
-    searchBar.style.display = 'block';
-  } else {
-    searchBar.style.display = 'none';
-  }
-  const input = document.getElementById('myInput');
-
-
+async function getAnimeInfoById(malId) {
+  const response = await fetch(`http://localhost:3000/mal/anime-by-id/${malId}`);
+  const data = await response.json();
+  return data.synopsis;
 }
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("malLoginButton").addEventListener("click", loginWithMAL);
-  document.getElementById("animeSuggestButton").addEventListener("click", getAnimeDetailsThenSuggest);
-  document.getElementById("tracemoein").addEventListener("change", testTraceMoe); // ðŸ‘ˆ triggers when an image is selected
-});
 
 async function testTraceMoe() {
   const fileInput = document.getElementById('tracemoein');
-
   const file = fileInput.files[0];
+
+  if (!file) {
+    return;
+  }
 
   const formData = new FormData();
   formData.append("image", file);
@@ -104,22 +85,30 @@ async function testTraceMoe() {
     const bestMatch = traceData.result?.[0];
 
     if (bestMatch) {
+      const malId = bestMatch.anilist.idMal; // Use MAL ID from the response
       const title =
         bestMatch.anime ||
         bestMatch.title_english ||
         bestMatch.title_native ||
         bestMatch.filename ||
-        "Unknown Title"; //gets any title available, feature 1
+        "Unknown Title";
 
-      const episode = bestMatch.episode; //feature 1
-      const similarity = bestMatch.similarity; //lets you know how accurate traceMoe thinks it is
-      const videoUrl = bestMatch.video; //shows a video of where timestamp is from
-      const from = bestMatch.from; //for feature 2
+      const episode = bestMatch.episode;
+      const similarity = bestMatch.similarity;
+      const videoUrl = bestMatch.video;
+      const from = bestMatch.from;
 
       const minutes = Math.floor(from / 60);
-      const seconds = Math.floor(from % 60); //for the timestamp, feature 2
+      const seconds = Math.floor(from % 60);
 
-      const summary = await getAnimeInfo(title); //for the summary, feature 3
+      // Fetch summary using the MAL ID if available, otherwise fall back to title search
+      let summary;
+      if (malId) {
+        summary = await getAnimeInfoById(malId);
+      } else {
+        const cleanedTitle = cleanTitle(title);
+        summary = await getAnimeInfo(cleanedTitle);
+      }
 
       document.getElementById("tracemoeheading").innerHTML = `<strong>Title:</strong> ${title}<br>`;
       document.getElementById("tracemoepara").innerHTML =
@@ -127,7 +116,7 @@ async function testTraceMoe() {
         `<strong>Timestamp:</strong> ${minutes}:${seconds.toString().padStart(2, '0')}<br>` +
         `<strong>Similarity:</strong> ${similarity.toFixed(2)}<br><br>` +
         `<video controls width="300" src="${videoUrl}"></video><br>` +
-        `<strong>Summary:</strong> ${summary}`;
+        `<strong>Summary:</strong> ${summary || "Summary not available."}`;
     } else {
       console.log("TraceMoe full response:", traceData);
       document.getElementById("tracemoeheading").textContent = "No match found.";
@@ -140,4 +129,19 @@ async function testTraceMoe() {
   }
 }
 
-document.getElementById('tracemoein').addEventListener('change', testTraceMoe);
+document.addEventListener("DOMContentLoaded", () => {
+  const malLoginButton = document.getElementById("malLoginButton");
+  if (malLoginButton) {
+    malLoginButton.addEventListener("click", loginWithMAL);
+  }
+
+  const animeSuggestButton = document.getElementById("animeSuggestButton");
+  if (animeSuggestButton) {
+    animeSuggestButton.addEventListener("click", getAnimeDetailsThenSuggest);
+  }
+  
+  const tracemoein = document.getElementById("tracemoein");
+  if (tracemoein) {
+    tracemoein.addEventListener("change", testTraceMoe);
+  }
+});
