@@ -6,13 +6,13 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
+const app = express();
+const PORT = 3000;
+
 app.use(cors({
   origin: "https://yomiru.netlify.app",
   credentials: true
 }));
-
-const app = express();
-const PORT = 3000;
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
