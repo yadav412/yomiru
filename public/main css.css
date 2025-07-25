@@ -38,6 +38,9 @@ body {
 .logo img {
     border-radius: 50%;
     transition: transform 0.3s ease;
+    width: 150px; 
+    height: 110px; 
+
 }
 
 .logo img:hover {
@@ -257,3 +260,5 @@ body.tracemoe {
     font-weight: 400;
     background-color: transparent;
 }
+
+
