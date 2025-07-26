@@ -57,7 +57,19 @@
   </section>
 
   <script>
-    const API_BASE = "http://localhost:3000";
+    // Environment-aware API configuration
+    function getApiBase() {
+      // Check if we're on localhost (development)
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return "http://localhost:3000";
+      }
+      
+      // Production backend URL (same as main js.js)
+      return "https://final-project-10-streams-q2e3.onrender.com";
+    }
+    
+    const API_BASE = getApiBase();
+    console.log('🔗 Using API Base:', API_BASE);
     
     // Store user likes for recommendation algorithm
     let userLikes = [];
@@ -824,87 +836,103 @@
     
     // Test backend connectivity
     async function testBackendConnectivity() {
-      console.log('🔍 Testing backend connectivity...');
       try {
-        const response = await fetch(`${API_BASE}/mal/trending?limit=1`, {
+        console.log('🔍 Testing backend connectivity...');
+        const response = await fetch(`${API_BASE}/health`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         });
         
-        console.log('🔗 Backend connectivity test:', response.status, response.statusText);
-        
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Backend is reachable. Sample data:', data);
+          console.log('✅ Backend is online:', data);
           return true;
         } else {
-          console.error('❌ Backend returned error:', response.status);
+          console.error('❌ Backend health check failed:', response.status, response.statusText);
           return false;
         }
       } catch (error) {
-        console.error('❌ Cannot reach backend:', error.message);
-        console.error('This might be a CORS issue or the backend is not running');
+        console.error('❌ Backend connectivity test failed:', error);
+        console.error('🚨 This means the backend is not accessible. Check if:');
+        console.error('   1. Backend is deployed and running');
+        console.error('   2. CORS is configured correctly');
+        console.error('   3. API_BASE URL is correct:', API_BASE);
         return false;
       }
     }
 
+    // Initialize recommendations system
     async function initializeRecommendations() {
-      console.log('=== INITIALIZING RECOMMENDATIONS ===');
+      console.log('🚀 Initializing recommendation system...');
       
       // Test backend connectivity first
-      const backendReachable = await testBackendConnectivity();
-      if (!backendReachable) {
-        console.warn('⚠️ Backend not reachable, using demo data only');
-        displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
-        createCards();
-        updateInfo(current);
-        return;
+      const backendOnline = await testBackendConnectivity();
+      if (!backendOnline) {
+        console.error('🚨 Backend is not accessible - falling back to demo data');
+        // Show user-friendly error message
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <div style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin: 20px; border-left: 4px solid #c62828;">
+            <strong>⚠️ Connection Error</strong><br>
+            Unable to connect to the recommendation server. Using demo data only.<br>
+            <small>Backend URL: ${API_BASE}</small>
+          </div>
+        `;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
       }
       
       showLoading();
       
       try {
-        // Try to fetch from API first
-        console.log('Fetching trending anime from API...');
+        // Fetch initial data
         trendingAnimeList = await fetchTrendingAnime();
-        console.log('✅ Fetched trending anime:', trendingAnimeList.length, 'items');
-        console.log('First anime:', trendingAnimeList[0]);
+        console.log('📊 Initial trending anime loaded:', trendingAnimeList.length);
         
         if (trendingAnimeList.length === 0) {
-          console.warn('⚠️ No trending anime received from API');
+          console.warn('⚠️ No trending anime received, using demo data');
           trendingAnimeList = getDemoTrendingAnime();
-          console.log('Using demo data:', trendingAnimeList.length, 'items');
         }
         
-        console.log('Creating display queue...');
-        displayQueue = createDisplayQueue([], trendingAnimeList);
-        console.log('✅ Created display queue:', displayQueue.length, 'items');
-        console.log('First queue item:', displayQueue[0]);
+        // Create initial display queue
+        displayQueue = createDisplayQueue(similarAnimeList, trendingAnimeList);
+        console.log('🎯 Initial display queue created:', displayQueue.length, 'anime');
         
-        if (displayQueue.length > 0) {
-          console.log('Creating cards...');
-          createCards();
-          console.log('Updating info for current anime...');
-          updateInfo(current);
-          console.log('✅ Successfully initialized with data');
-        } else {
-          console.error('❌ Display queue is empty, using demo data');
-          displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
-          console.log('Demo fallback queue:', displayQueue);
-          createCards();
-          updateInfo(current);
+        if (displayQueue.length === 0) {
+          console.error('❌ No anime in display queue! Something went wrong.');
+          hideLoading();
+          return;
         }
-      } catch (error) {
-        console.error('❌ Error initializing recommendations:', error);
-        console.log('Using demo data as final fallback');
-        displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+        
+        // Create cards and show first anime
         createCards();
-        updateInfo(current);
-      } finally {
+        updateInfo(0);
+        
         hideLoading();
-        console.log('=== INITIALIZATION COMPLETE ===');
+        console.log('✅ Recommendation system initialized successfully!');
+        
+      } catch (error) {
+        console.error('❌ Failed to initialize recommendations:', error);
+        
+        // Fallback to demo data
+        console.log('🔄 Falling back to demo data...');
+        trendingAnimeList = getDemoTrendingAnime();
+        displayQueue = createDisplayQueue([], trendingAnimeList);
+        createCards();
+        updateInfo(0);
+        hideLoading();
+        
+        // Show error to user
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `
+          <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 20px; border-left: 4px solid #ffc107;">
+            <strong>⚠️ Limited Mode</strong><br>
+            Could not load fresh anime data. Showing demo content only.<br>
+            <small>Error: ${error.message}</small>
+          </div>
+        `;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
       }
     }
     

@@ -7,12 +7,20 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 3000
 
+// Update CORS to allow both Netlify and Render domains
 app.use(cors({
-  origin: "https://yomiru.netlify.app",
+  origin: [
+    "https://yomiru.netlify.app",
+    "https://final-project-10-streams-q2e3.onrender.com",
+    "https://final-project-10-streams.onrender.com"
+  ],
   credentials: true
 }));
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
@@ -22,8 +30,27 @@ console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
 
 let access_token = "";
 
+// Health check endpoint for deployment
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    malConfigured: !!CLIENT_ID,
+    corsOrigin: [
+      "https://yomiru.netlify.app",
+      "https://final-project-10-streams-q2e3.onrender.com",
+      "https://final-project-10-streams.onrender.com"
+    ]
+  });
+});
+
 app.use(express.json());
 app.use(cookieParser());
+
+// === ROOT ROUTE - Serve the main index.html ===
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 // === 1. Login route ===
 app.get("/login", (req, res) => {
@@ -81,7 +108,10 @@ app.get("/callback", async (req, res) => {
     );
 
     access_token = tokenRes.data.access_token;
-    res.redirect("http://localhost:5500/index.html");
+    // Redirect to the appropriate domain based on environment
+    const frontendUrl = process.env.FRONTEND_URL || req.get('host');
+    const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    res.redirect(`${protocol}://${frontendUrl}/index.html`);
   } catch (err) {
     console.error("❌ Token exchange failed:", err.response?.data || err.message);
     res.status(500).send("Login failed" + JSON.stringify(err.response?.data || err.message));
@@ -184,25 +214,96 @@ app.get("/mal/recommend", async (req, res) => {
 
 // === 5. Get trending anime ===
 app.get("/mal/trending", async (req, res) => {
+  const limit = req.query.limit || 50;
+  const offset = req.query.offset || 0;
+
   try {
     const info = await axios.get(`https://api.myanimelist.net/v2/anime/ranking`, {
       params: {
-        ranking_type: 'all',
-        limit: 8,
-        fields: "start_date,mean,synopsis"
+        ranking_type: 'bypopularity',
+        limit: limit,
+        offset: offset,
+        fields: "id,title,main_picture,synopsis,start_date,mean"
       },
       headers: {
         "X-MAL-CLIENT-ID": CLIENT_ID
       }
     });
-    res.json(info.data);
+    
+    // Transform the response to match frontend expectations
+    const anime = info.data.data.map(item => ({
+      id: item.node.id,
+      title: item.node.title,
+      main_picture: item.node.main_picture,
+      synopsis: item.node.synopsis,
+      start_date: item.node.start_date,
+      mean: item.node.mean
+    }));
+    
+    res.json({ anime });
   } catch (err) {
     console.error("Trending anime error:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to fetch trending anime" });
   }
 });
 
-// === 6. Search for anime ===
+// === 6. Get similar anime based on anime ID ===
+app.get("/mal/similar/:id", async (req, res) => {
+  const animeId = req.params.id;
+  const limit = req.query.limit || 10;
+
+  try {
+    // First get the anime details to find its genres
+    const animeInfo = await axios.get(`https://api.myanimelist.net/v2/anime/${animeId}`, {
+      params: {
+        fields: 'genres'
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    const genres = animeInfo.data.genres;
+    if (!genres || genres.length === 0) {
+      return res.json({ similar: [] });
+    }
+
+    // Get anime by the same genres
+    const similarAnime = await axios.get('https://api.myanimelist.net/v2/anime/ranking', {
+      params: {
+        ranking_type: 'bypopularity',
+        limit: limit * 2, // Get more to filter out the original
+        fields: 'id,title,main_picture,synopsis,genres'
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    // Filter anime that share genres and exclude the original anime
+    const similar = similarAnime.data.data
+      .map(item => item.node)
+      .filter(anime => 
+        anime.id !== parseInt(animeId) && 
+        anime.genres && 
+        anime.genres.some(genre => genres.some(originalGenre => originalGenre.id === genre.id))
+      )
+      .slice(0, limit)
+      .map(anime => ({
+        id: anime.id,
+        title: anime.title,
+        main_picture: anime.main_picture,
+        synopsis: anime.synopsis
+      }));
+
+    res.json({ similar });
+  } catch (err) {
+    console.error('Similar anime error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to fetch similar anime' });
+  }
+});
+
+// === 7. Search for anime ===
 app.get('/mal/search', async (req, res) => {
   const q = req.query.title;
   try {

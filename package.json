@@ -1,0 +1,26 @@
+{
+  "name": "anime-streaming-platform",
+  "version": "1.0.0",
+  "description": "Anime streaming platform with MyAnimeList integration",
+  "main": "backend/index.js",
+  "scripts": {
+    "start": "node backend/index.js",
+    "dev": "node backend/index.js",
+    "test": "cd backend && npm test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.0",
+    "express": "^5.1.0",
+    "node-fetch": "^2.7.0",
+    "qs": "^6.14.0"
+  },
+  "keywords": ["anime", "streaming", "myanimelist", "recommendations"],
+  "author": "",
+  "license": "ISC"
+} 

@@ -71,17 +71,21 @@ async function loadTrendingAnime() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        const animeList = data.data.map(item => ({
-            title: item.node.title,
-            image: item.node.main_picture ? item.node.main_picture.large || item.node.main_picture.medium : 'images/placeholder.jpg',
-            year: item.node.start_date ? item.node.start_date.split('-')[0] : 'N/A',
-            rating: item.node.mean || 'N/A',
-            synopsis: item.node.synopsis || 'No summary available.'
+        console.log('Trending anime response:', data); // Debug log
+        
+        // Fix: Backend returns { anime: [...] }, not { data: [...] }
+        const animeList = data.anime.map(item => ({
+            title: item.title,
+            image: item.main_picture ? item.main_picture.large || item.main_picture.medium : 'images/placeholder.jpg',
+            year: item.start_date ? item.start_date.split('-')[0] : 'N/A',
+            rating: item.mean || 'N/A',
+            synopsis: item.synopsis || 'No summary available.'
         }));
         displayTrendingAnime(animeList);
     } catch (error) {
         console.error('Failed to load trending anime:', error);
-        // Optionally, display an error message to the user
+        // Show fallback content or error message
+        displayTrendingAnime([]);
     }
 }
 
