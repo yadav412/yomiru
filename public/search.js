@@ -27,6 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
         clearBtn.style.display = this.value ? 'block' : 'none';
     });
 
+    clearBtn.addEventListener('click', function () {
+    clearSearch();
+    });
+
+
     // Load trending anime on page load
     loadTrendingAnime();
 });
