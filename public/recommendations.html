@@ -6,9 +6,10 @@
   <title>Yomiru - Anime Recommendations</title>
   <link rel="stylesheet" href="newCss.css">
   <link rel="stylesheet" href="recommendations.css">
-  <link rel="icon" href="images/logo.png" type="image/png">
+  <link rel="stylesheet" href="recommendations.css">
+<link rel="icon" href="images/logo.png" type="image/png">
 </head>
-<body style="min-height:100vh; margin:0; display:flex; flex-direction:column;">
+<body style="min-height:100vh; margin:0; display:flex; flex-direction:column;" style="min-height:100vh; margin:0; display:flex; flex-direction:column;">
   <header>
     <div class="logo"><a href="index.html"><img src="images/Website_logo_new.png" alt="Website logo"></a></div>
     <nav class="navbar">
@@ -27,8 +28,7 @@
       </div>
     </nav>
   </header>
-
-  <main style="flex:1; display:flex; align-items:center; justify-content:center; min-height:0;">
+<body>
   <section class="anime-recommendation-wrapper">
     <div class="anime-card-container">
       <div id="anime-cards">
@@ -57,19 +57,7 @@
   </section>
 
   <script>
-    // Environment-aware API configuration
-    function getApiBase() {
-      // Check if we're on localhost (development)
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return "http://localhost:3000";
-      }
-      
-      // Production backend URL (same as main js.js)
-      return "https://final-project-10-streams-q2e3.onrender.com";
-    }
-    
-    const API_BASE = getApiBase();
-    console.log('🔗 Using API Base:', API_BASE);
+    const API_BASE = "http://localhost:3000";
     
     // Store user likes for recommendation algorithm
     let userLikes = [];
@@ -836,103 +824,87 @@
     
     // Test backend connectivity
     async function testBackendConnectivity() {
+      console.log('🔍 Testing backend connectivity...');
       try {
-        console.log('🔍 Testing backend connectivity...');
-        const response = await fetch(`${API_BASE}/health`, {
+        const response = await fetch(`${API_BASE}/mal/trending?limit=1`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         });
         
+        console.log('🔗 Backend connectivity test:', response.status, response.statusText);
+        
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Backend is online:', data);
+          console.log('✅ Backend is reachable. Sample data:', data);
           return true;
         } else {
-          console.error('❌ Backend health check failed:', response.status, response.statusText);
+          console.error('❌ Backend returned error:', response.status);
           return false;
         }
       } catch (error) {
-        console.error('❌ Backend connectivity test failed:', error);
-        console.error('🚨 This means the backend is not accessible. Check if:');
-        console.error('   1. Backend is deployed and running');
-        console.error('   2. CORS is configured correctly');
-        console.error('   3. API_BASE URL is correct:', API_BASE);
+        console.error('❌ Cannot reach backend:', error.message);
+        console.error('This might be a CORS issue or the backend is not running');
         return false;
       }
     }
 
-    // Initialize recommendations system
     async function initializeRecommendations() {
-      console.log('🚀 Initializing recommendation system...');
+      console.log('=== INITIALIZING RECOMMENDATIONS ===');
       
       // Test backend connectivity first
-      const backendOnline = await testBackendConnectivity();
-      if (!backendOnline) {
-        console.error('🚨 Backend is not accessible - falling back to demo data');
-        // Show user-friendly error message
-        const errorDiv = document.createElement('div');
-        errorDiv.innerHTML = `
-          <div style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin: 20px; border-left: 4px solid #c62828;">
-            <strong>⚠️ Connection Error</strong><br>
-            Unable to connect to the recommendation server. Using demo data only.<br>
-            <small>Backend URL: ${API_BASE}</small>
-          </div>
-        `;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
+      const backendReachable = await testBackendConnectivity();
+      if (!backendReachable) {
+        console.warn('⚠️ Backend not reachable, using demo data only');
+        displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+        createCards();
+        updateInfo(current);
+        return;
       }
       
       showLoading();
       
       try {
-        // Fetch initial data
+        // Try to fetch from API first
+        console.log('Fetching trending anime from API...');
         trendingAnimeList = await fetchTrendingAnime();
-        console.log('📊 Initial trending anime loaded:', trendingAnimeList.length);
+        console.log('✅ Fetched trending anime:', trendingAnimeList.length, 'items');
+        console.log('First anime:', trendingAnimeList[0]);
         
         if (trendingAnimeList.length === 0) {
-          console.warn('⚠️ No trending anime received, using demo data');
+          console.warn('⚠️ No trending anime received from API');
           trendingAnimeList = getDemoTrendingAnime();
+          console.log('Using demo data:', trendingAnimeList.length, 'items');
         }
         
-        // Create initial display queue
-        displayQueue = createDisplayQueue(similarAnimeList, trendingAnimeList);
-        console.log('🎯 Initial display queue created:', displayQueue.length, 'anime');
-        
-        if (displayQueue.length === 0) {
-          console.error('❌ No anime in display queue! Something went wrong.');
-          hideLoading();
-          return;
-        }
-        
-        // Create cards and show first anime
-        createCards();
-        updateInfo(0);
-        
-        hideLoading();
-        console.log('✅ Recommendation system initialized successfully!');
-        
-      } catch (error) {
-        console.error('❌ Failed to initialize recommendations:', error);
-        
-        // Fallback to demo data
-        console.log('🔄 Falling back to demo data...');
-        trendingAnimeList = getDemoTrendingAnime();
+        console.log('Creating display queue...');
         displayQueue = createDisplayQueue([], trendingAnimeList);
-        createCards();
-        updateInfo(0);
-        hideLoading();
+        console.log('✅ Created display queue:', displayQueue.length, 'items');
+        console.log('First queue item:', displayQueue[0]);
         
-        // Show error to user
-        const errorDiv = document.createElement('div');
-        errorDiv.innerHTML = `
-          <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 20px; border-left: 4px solid #ffc107;">
-            <strong>⚠️ Limited Mode</strong><br>
-            Could not load fresh anime data. Showing demo content only.<br>
-            <small>Error: ${error.message}</small>
-          </div>
-        `;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
+        if (displayQueue.length > 0) {
+          console.log('Creating cards...');
+          createCards();
+          console.log('Updating info for current anime...');
+          updateInfo(current);
+          console.log('✅ Successfully initialized with data');
+        } else {
+          console.error('❌ Display queue is empty, using demo data');
+          displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+          console.log('Demo fallback queue:', displayQueue);
+          createCards();
+          updateInfo(current);
+        }
+      } catch (error) {
+        console.error('❌ Error initializing recommendations:', error);
+        console.log('Using demo data as final fallback');
+        displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+        createCards();
+        updateInfo(current);
+      } finally {
+        hideLoading();
+        console.log('=== INITIALIZATION COMPLETE ===');
       }
     }
     
@@ -941,10 +913,4 @@
     
     initializeRecommendations();
   </script>
-  </main>
-
-    <footer>
-       <p class="copyright">© 2025 Yomiru. All rights reserved.</p>
-    </footer>
 </body>
-</html>
