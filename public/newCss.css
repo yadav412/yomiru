@@ -34,7 +34,7 @@ nav {
 }
 
 nav button, nav input, nav a {
-  background-color: #e0363b;
+      background: linear-gradient(45deg, #ff0000, #ff4500);;
   border: none;
   padding: 0.4rem 1rem;
   border-radius: 20px;
