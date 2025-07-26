@@ -7,12 +7,20 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 3000
 
+// Update CORS to allow both Netlify and Render domains
 app.use(cors({
-  origin: "https://yomiru.netlify.app",
+  origin: [
+    "https://yomiru.netlify.app",
+    "https://final-project-10-streams-q2e3.onrender.com",
+    "https://final-project-10-streams.onrender.com"
+  ],
   credentials: true
 }));
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
@@ -28,12 +36,21 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     malConfigured: !!CLIENT_ID,
-    corsOrigin: "https://yomiru.netlify.app"
+    corsOrigin: [
+      "https://yomiru.netlify.app",
+      "https://final-project-10-streams-q2e3.onrender.com",
+      "https://final-project-10-streams.onrender.com"
+    ]
   });
 });
 
 app.use(express.json());
 app.use(cookieParser());
+
+// === ROOT ROUTE - Serve the main index.html ===
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 // === 1. Login route ===
 app.get("/login", (req, res) => {
@@ -91,7 +108,10 @@ app.get("/callback", async (req, res) => {
     );
 
     access_token = tokenRes.data.access_token;
-    res.redirect("http://localhost:5500/index.html");
+    // Redirect to the appropriate domain based on environment
+    const frontendUrl = process.env.FRONTEND_URL || req.get('host');
+    const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    res.redirect(`${protocol}://${frontendUrl}/index.html`);
   } catch (err) {
     console.error("❌ Token exchange failed:", err.response?.data || err.message);
     res.status(500).send("Login failed" + JSON.stringify(err.response?.data || err.message));
