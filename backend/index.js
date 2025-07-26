@@ -22,6 +22,16 @@ console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
 
 let access_token = "";
 
+// Health check endpoint for deployment
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    malConfigured: !!CLIENT_ID,
+    corsOrigin: "https://yomiru.netlify.app"
+  });
+});
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -184,25 +194,94 @@ app.get("/mal/recommend", async (req, res) => {
 
 // === 5. Get trending anime ===
 app.get("/mal/trending", async (req, res) => {
+  const limit = req.query.limit || 50;
+  const offset = req.query.offset || 0;
+
   try {
     const info = await axios.get(`https://api.myanimelist.net/v2/anime/ranking`, {
       params: {
-        ranking_type: 'all',
-        limit: 8,
-        fields: "start_date,mean,synopsis"
+        ranking_type: 'bypopularity',
+        limit: limit,
+        offset: offset,
+        fields: "id,title,main_picture,synopsis"
       },
       headers: {
         "X-MAL-CLIENT-ID": CLIENT_ID
       }
     });
-    res.json(info.data);
+    
+    // Transform the response to match frontend expectations
+    const anime = info.data.data.map(item => ({
+      id: item.node.id,
+      title: item.node.title,
+      main_picture: item.node.main_picture,
+      synopsis: item.node.synopsis
+    }));
+    
+    res.json({ anime });
   } catch (err) {
     console.error("Trending anime error:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to fetch trending anime" });
   }
 });
 
-// === 6. Search for anime ===
+// === 6. Get similar anime based on anime ID ===
+app.get("/mal/similar/:id", async (req, res) => {
+  const animeId = req.params.id;
+  const limit = req.query.limit || 10;
+
+  try {
+    // First get the anime details to find its genres
+    const animeInfo = await axios.get(`https://api.myanimelist.net/v2/anime/${animeId}`, {
+      params: {
+        fields: 'genres'
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    const genres = animeInfo.data.genres;
+    if (!genres || genres.length === 0) {
+      return res.json({ similar: [] });
+    }
+
+    // Get anime by the same genres
+    const similarAnime = await axios.get('https://api.myanimelist.net/v2/anime/ranking', {
+      params: {
+        ranking_type: 'bypopularity',
+        limit: limit * 2, // Get more to filter out the original
+        fields: 'id,title,main_picture,synopsis,genres'
+      },
+      headers: {
+        "X-MAL-CLIENT-ID": CLIENT_ID
+      }
+    });
+
+    // Filter anime that share genres and exclude the original anime
+    const similar = similarAnime.data.data
+      .map(item => item.node)
+      .filter(anime => 
+        anime.id !== parseInt(animeId) && 
+        anime.genres && 
+        anime.genres.some(genre => genres.some(originalGenre => originalGenre.id === genre.id))
+      )
+      .slice(0, limit)
+      .map(anime => ({
+        id: anime.id,
+        title: anime.title,
+        main_picture: anime.main_picture,
+        synopsis: anime.synopsis
+      }));
+
+    res.json({ similar });
+  } catch (err) {
+    console.error('Similar anime error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to fetch similar anime' });
+  }
+});
+
+// === 7. Search for anime ===
 app.get('/mal/search', async (req, res) => {
   const q = req.query.title;
   try {
