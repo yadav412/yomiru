@@ -13,8 +13,9 @@ const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 3000
 app.use(cors({
   origin: [
     "https://yomiru.netlify.app",
-    "https://final-project-10-streams-q2e3.onrender.com",
-    "https://final-project-10-streams.onrender.com"
+    "https://final-project-10-streams.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:8080"
   ],
   credentials: true
 }));
