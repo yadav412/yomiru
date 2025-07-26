@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearBtn = document.querySelector('.clear-btn');
     const searchResults = document.getElementById('search-results');
     const trendingSection = document.getElementById('trending-section');
+    const noResults = document.getElementById('no-results');
+    const resultsGrid = document.getElementById('results-grid');
     const trendingGrid = document.getElementById('trending-grid');
 
     // Auto-focus search input
