@@ -37,17 +37,25 @@ async function performSearch(searchTerm) {
   showSearchResults();
 
   try {
-    const res = await fetch(
-      `${API_BASE}/mal/search?title=${encodeURIComponent(searchTerm)}`
-    );
+    const res = await fetch(`${API_BASE}/mal/search?title=${encodeURIComponent(searchTerm)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();       // { data: [ { node: {...} }, … ] }
-    displaySearchResults(data);
+    const data = await res.json(); // { data: [ { node: {...} }, … ] }
+
+    const animeArray = data.data.map(item => ({
+      title: item.node.title,
+      image: item.node.main_picture?.large || item.node.main_picture?.medium || 'images/placeholder.jpg',
+      year: item.node.start_date ? item.node.start_date.split('-')[0] : 'N/A',
+      rating: item.node.mean || 'N/A',
+      synopsis: item.node.synopsis || 'No summary available.'
+    }));
+
+    displaySearchResults(animeArray);
   } catch (err) {
     console.error("Search error:", err);
     displayNoResults(`Error fetching results.`);
   }
 }
+
 
 
 async function loadTrendingAnime() {
@@ -107,20 +115,33 @@ function showLoadingCards(gridId) {
     }
 }
 
-function displaySearchResults(results) {
-    const grid = document.getElementById('results-grid');
-    
-    if (!results || results.length === 0) {
-        showNoResults();
-        return;
-    }
-    
-    grid.innerHTML = '';
-    results.forEach(anime => {
-        const card = createAnimeCard(anime);
-        grid.appendChild(card);
-    });
+function displayNoResults(msg) {
+  const box = document.getElementById('search-results');
+  box.innerHTML = `<div class="no-results">${msg}</div>`;
 }
+
+function displaySearchResults(results) {
+  const resultsEl = document.getElementById('search-results');
+  if (!results || results.length === 0) {
+    return displayNoResults(`No results found for "${currentSearchTerm}"`);
+  }
+
+  resultsEl.innerHTML = '';
+  results.forEach(anime => {
+    const item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML = `
+      <img src="${anime.image}" alt="${anime.title}" class="result-thumb">
+      <div class="result-info">
+        <h4>${anime.title}</h4>
+        <p><strong>Rating:</strong> ${anime.rating}/10</p>
+        <p><strong>Released:</strong> ${anime.year}</p>
+        <p class="result-synopsis">${anime.synopsis}</p>
+      </div>`;
+    resultsEl.appendChild(item);
+  });
+}
+
 
 function displayTrendingAnime(animeList) {
     const grid = document.getElementById('trending-grid');

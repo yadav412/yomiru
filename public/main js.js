@@ -148,44 +148,6 @@ async function performSearch(searchTerm) {
   }
 }
 
-function displayNoResults(msg) {
-  const box = document.getElementById('search-results');
-  box.innerHTML = `<div class="no-results">${msg}</div>`;
-}
-
-function displaySearchResults(apiData) {
-  const resultsEl = document.getElementById('search-results');
-  const results = apiData.data;
-  if (!results || results.length === 0) {
-    return displayNoResults(`No results found for "${currentSearchTerm}"`);
-  }
-  resultsEl.innerHTML = '';
-  results.forEach(({ node }) => {
-    const title    = node.title;
-    const thumb    = node.main_picture?.medium || '';
-    const rating   = node.mean || 'N/A';
-    const year     = node.start_date ? node.start_date.split('-')[0] : 'N/A';
-    const summary  = node.synopsis
-      ? node.synopsis.substring(0, 120) + '…'
-      : 'No summary available.';
-
-    const item = document.createElement('div');
-    item.className = 'result-item';
-    item.innerHTML = `
-      <img src="${thumb}" alt="${title}" class="result-thumb">
-      <div class="result-info">
-        <h4>${title}</h4>
-        <p><strong>Rating:</strong> ${rating}/10</p>
-        <p><strong>Released:</strong> ${year}</p>
-        <p class="result-synopsis">${summary}</p>
-      </div>`;
-    resultsEl.appendChild(item);
-  });
-}
-
-
-
-
 document.addEventListener("DOMContentLoaded", () => {
   const malLoginButton = document.getElementById("malLoginButton");
   if (malLoginButton) {
