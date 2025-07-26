@@ -11,12 +11,16 @@ const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 3000
 
 // Update CORS to allow both Netlify and Render domains
 app.use(cors({
-  origin: "https://yomiru.netlify.app",
+  origin: [
+    "https://yomiru.netlify.app",
+    "https://final-project-10-streams-q2e3.onrender.com",
+    "https://final-project-10-streams.onrender.com"
+  ],
   credentials: true
 }));
 
-app.use(express.json());
-app.use(cookieParser());
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
@@ -25,6 +29,13 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
 
 let access_token = "";
+
+// Helper function to get redirect URI
+function getRedirectUri(req) {
+  const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  const host = req.get('host');
+  return REDIRECT_URI || `${protocol}://${host}/callback`;
+}
 
 // Health check endpoint for deployment
 app.get('/health', (req, res) => {
@@ -60,10 +71,14 @@ app.get("/login", (req, res) => {
     maxAge: 300000 // 5 minutes
   });
 
+  // Use environment variable or auto-detect redirect URI
+  const redirectUri = getRedirectUri(req);
+  console.log("Using redirect URI:", redirectUri);
+
   const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
   `?response_type=code` +
   `&client_id=${CLIENT_ID}` +
-  `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+  `&redirect_uri=${encodeURIComponent(redirectUri)}` +
   `&code_challenge=${codeChallenge}` +
   `&code_challenge_method=S256`;
 
@@ -87,6 +102,9 @@ app.get("/callback", async (req, res) => {
   try {
     const qs = require("querystring");
 
+    // Use same redirect URI logic as login route
+    const redirectUri = getRedirectUri(req);
+
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
       qs.stringify({
@@ -94,7 +112,7 @@ app.get("/callback", async (req, res) => {
         code,
         client_id: CLIENT_ID,
         code_verifier: codeVerifier,
-        redirect_uri: REDIRECT_URI
+        redirect_uri: redirectUri
       }),
       {
         headers: {
@@ -106,8 +124,8 @@ app.get("/callback", async (req, res) => {
     access_token = tokenRes.data.access_token;
     // Redirect to the appropriate domain based on environment
     const frontendUrl = process.env.FRONTEND_URL || req.get('host');
-    const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-    res.redirect(`${protocol}://${frontendUrl}/index.html`);
+    const redirectProtocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    res.redirect(`${redirectProtocol}://${frontendUrl}/index.html`);
   } catch (err) {
     console.error("❌ Token exchange failed:", err.response?.data || err.message);
     res.status(500).send("Login failed" + JSON.stringify(err.response?.data || err.message));
@@ -208,19 +226,18 @@ app.get("/mal/recommend", async (req, res) => {
   }
 });
 
-// === 5. Get trending anime (updated to fetch by popularity) ===
+// === 5. Get trending anime ===
 app.get("/mal/trending", async (req, res) => {
-  const limit = req.query.limit || 50; // Fetch a larger list for better shuffling
-  const offset = req.query.offset || 0; // Support pagination
+  const limit = req.query.limit || 50;
+  const offset = req.query.offset || 0;
 
   try {
-    const info = await axios.get('https://api.myanimelist.net/v2/anime/ranking', {
+    const info = await axios.get(`https://api.myanimelist.net/v2/anime/ranking`, {
       params: {
         ranking_type: 'bypopularity',
         limit: limit,
         offset: offset,
         fields: "id,title,main_picture,synopsis,start_date,mean"
-        fields: 'id,title,main_picture,synopsis'
       },
       headers: {
         "X-MAL-CLIENT-ID": CLIENT_ID
@@ -239,65 +256,8 @@ app.get("/mal/trending", async (req, res) => {
     
     res.json({ anime });
   } catch (err) {
-    console.error('Trending anime error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Failed to fetch trending anime' });
-  }
-});
-
-// === 6. Get similar anime based on anime ID ===
-app.get("/mal/similar/:id", async (req, res) => {
-  const animeId = req.params.id;
-  const limit = req.query.limit || 10;
-
-  try {
-    // First get the anime details to find its genres
-    const animeInfo = await axios.get(`https://api.myanimelist.net/v2/anime/${animeId}`, {
-      params: {
-        fields: 'genres'
-      },
-      headers: {
-        "X-MAL-CLIENT-ID": CLIENT_ID
-      }
-    });
-
-    const genres = animeInfo.data.genres;
-    if (!genres || genres.length === 0) {
-      return res.json({ similar: [] });
-    }
-
-    // Get anime by the same genres (using the first genre)
-    const genreId = genres[0].id;
-    const similarAnime = await axios.get('https://api.myanimelist.net/v2/anime/ranking', {
-      params: {
-        ranking_type: 'bypopularity',
-        limit: limit * 2, // Get more to filter out the original
-        fields: 'id,title,main_picture,synopsis,genres'
-      },
-      headers: {
-        "X-MAL-CLIENT-ID": CLIENT_ID
-      }
-    });
-
-    // Filter anime that share genres and exclude the original anime
-    const similar = similarAnime.data.data
-      .map(item => item.node)
-      .filter(anime => 
-        anime.id !== parseInt(animeId) && 
-        anime.genres && 
-        anime.genres.some(genre => genres.some(originalGenre => originalGenre.id === genre.id))
-      )
-      .slice(0, limit)
-      .map(anime => ({
-        id: anime.id,
-        title: anime.title,
-        main_picture: anime.main_picture,
-        synopsis: anime.synopsis
-      }));
-
-    res.json({ similar });
-  } catch (err) {
-    console.error('Similar anime error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Failed to fetch similar anime' });
+    console.error("Trending anime error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch trending anime" });
   }
 });
 
