@@ -223,7 +223,7 @@ app.get("/mal/trending", async (req, res) => {
         ranking_type: 'bypopularity',
         limit: limit,
         offset: offset,
-        fields: "id,title,main_picture,synopsis"
+        fields: "id,title,main_picture,synopsis,start_date,mean"
       },
       headers: {
         "X-MAL-CLIENT-ID": CLIENT_ID
@@ -235,7 +235,9 @@ app.get("/mal/trending", async (req, res) => {
       id: item.node.id,
       title: item.node.title,
       main_picture: item.node.main_picture,
-      synopsis: item.node.synopsis
+      synopsis: item.node.synopsis,
+      start_date: item.node.start_date,
+      mean: item.node.mean
     }));
     
     res.json({ anime });
