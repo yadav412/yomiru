@@ -131,6 +131,61 @@ async function testTraceMoe() {
   }
 }
 
+async function performSearch(searchTerm) {
+  if (!searchTerm) return;
+
+  currentSearchTerm = searchTerm;
+  showSearchResults();
+
+  try {
+    const res = await fetch(`${API_BASE}/mal/search?title=${encodeURIComponent(searchTerm)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();      // expect { data: [ { node: { … }}, … ] }
+    displaySearchResults(data);
+  } catch (err) {
+    console.error("Search error:", err);
+    displayNoResults(`Error fetching results.`);
+  }
+}
+
+function displayNoResults(msg) {
+  const box = document.getElementById('search-results');
+  box.innerHTML = `<div class="no-results">${msg}</div>`;
+}
+
+function displaySearchResults(apiData) {
+  const resultsEl = document.getElementById('search-results');
+  const results = apiData.data;
+  if (!results || results.length === 0) {
+    return displayNoResults(`No results found for "${currentSearchTerm}"`);
+  }
+  resultsEl.innerHTML = '';
+  results.forEach(({ node }) => {
+    const title    = node.title;
+    const thumb    = node.main_picture?.medium || '';
+    const rating   = node.mean || 'N/A';
+    const year     = node.start_date ? node.start_date.split('-')[0] : 'N/A';
+    const summary  = node.synopsis
+      ? node.synopsis.substring(0, 120) + '…'
+      : 'No summary available.';
+
+    const item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML = `
+      <img src="${thumb}" alt="${title}" class="result-thumb">
+      <div class="result-info">
+        <h4>${title}</h4>
+        <p><strong>Rating:</strong> ${rating}/10</p>
+        <p><strong>Released:</strong> ${year}</p>
+        <p class="result-synopsis">${summary}</p>
+      </div>`;
+    resultsEl.appendChild(item);
+  });
+}
+
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const malLoginButton = document.getElementById("malLoginButton");
   if (malLoginButton) {
@@ -145,5 +200,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const tracemoein = document.getElementById("tracemoein");
   if (tracemoein) {
     tracemoein.addEventListener("change", testTraceMoe);
+  }
+
+  // — Search bar (only on Enter)
+  const searchInput = document.getElementById("search-input");
+  const clearBtn = document.querySelector(".clear-btn");
+  if (searchInput) {
+    // focus when page loads
+    searchInput.focus();
+
+    // trigger search on Enter
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        const query = searchInput.value.trim();
+        if (query) {
+          performSearch(query);
+        }
+      }
+    });
+  }
+
+  // — Clear button for search
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      clearBtn.style.display = "none";
+      showTrending();      // restores your trending grid
+      document.getElementById("search-results").innerHTML = "";
+      searchInput.focus();
+    });
   }
 });

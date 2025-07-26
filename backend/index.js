@@ -22,14 +22,8 @@ console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
 
 let access_token = "";
 
-app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-
-// === Ping route for uptime monitoring ===
-app.get("/ping", (req, res) => {
-  res.send("OK");
-});
 
 // === 1. Login route ===
 app.get("/login", (req, res) => {
@@ -43,7 +37,12 @@ app.get("/login", (req, res) => {
     maxAge: 300000 // 5 minutes
   });
 
-  const authUrl = `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=http://localhost:3000/callback&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+  const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
+  `?response_type=code` +
+  `&client_id=${CLIENT_ID}` +
+  `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+  `&code_challenge=${codeChallenge}` +
+  `&code_challenge_method=S256`;
 
   res.redirect(authUrl);
 });
@@ -202,6 +201,22 @@ app.get("/mal/trending", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch trending anime" });
   }
 });
+
+// === 6. Search for anime ===
+app.get('/mal/search', async (req, res) => {
+  const q = req.query.title;
+  try {
+    const apiRes = await axios.get('https://api.myanimelist.net/v2/anime', {
+      params: { q, limit: 5, fields: 'title,main_picture,synopsis,mean,start_date' },
+      headers: { 'X-MAL-CLIENT-ID': process.env.MAL_CLIENT_ID }
+    });
+    res.json(apiRes.data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ data: [] });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);

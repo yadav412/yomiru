@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.focus();
 
     // Search input event listeners
-    searchInput.addEventListener('input', handleSearch);
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             performSearch(searchInput.value.trim());
@@ -32,43 +31,24 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTrendingAnime();
 });
 
-function handleSearch() {
-    const searchTerm = document.getElementById('search-input').value.trim();
-    
-    // Clear previous timeout
-    if (searchTimeout) {
-        clearTimeout(searchTimeout);
-    }
+async function performSearch(searchTerm) {
+  if (!searchTerm || searchTerm === currentSearchTerm) return;
+  currentSearchTerm = searchTerm;
+  showSearchResults();
 
-    // If search is empty, show trending
-    if (!searchTerm) {
-        showTrending();
-        return;
-    }
-
-    // Debounce search - wait 500ms after user stops typing
-    searchTimeout = setTimeout(() => {
-        performSearch(searchTerm);
-    }, 500);
+  try {
+    const res = await fetch(
+      `${API_BASE}/mal/search?title=${encodeURIComponent(searchTerm)}`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();       // { data: [ { node: {...} }, … ] }
+    displaySearchResults(data);
+  } catch (err) {
+    console.error("Search error:", err);
+    displayNoResults(`Error fetching results.`);
+  }
 }
 
-function performSearch(searchTerm) {
-    if (!searchTerm || searchTerm === currentSearchTerm) return;
-    
-    currentSearchTerm = searchTerm;
-    console.log('Searching for:', searchTerm);
-    
-    showSearchResults();
-    // showLoadingCards('results-grid'); // Flashing cards removed
-    
-    // TODO: Replace with actual API call
-    // For now, simulate API call with timeout
-    setTimeout(() => {
-        // Mock search results
-        const mockResults = generateMockSearchResults(searchTerm);
-        displaySearchResults(mockResults);
-    }, 1000);
-}
 
 async function loadTrendingAnime() {
     console.log('Loading trending anime...');
@@ -284,5 +264,4 @@ function generateMockTrendingAnime() {
             rating: '8.9'
         }
     ];
-    
 }

@@ -359,3 +359,56 @@ body.search-page {
         font-size: 0.8rem;
     }
 }
+
+#search-results {
+  background: #1a1a1a;
+  border-radius: 0 0 8px 8px;   
+  max-height: 300px;
+  overflow-y: auto;            
+  display: none;              
+}
+
+.result-item {
+  display: flex;
+  padding: 10px;
+  border-bottom: 1px solid #333;
+  color: #fff;
+}
+
+.result-item:last-child {
+  border-bottom: none; 
+}
+
+.result-thumb {
+  width: 50px;
+  height: auto;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.result-info h4 {
+  margin: 0 0 5px;
+  font-size: 16px;
+  color: #fff;
+}
+
+.result-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.result-info .result-synopsis {
+  color: #aaa;
+}
+
+.result-item:hover {
+  background: #2a2a2a;
+}
+
+.no-results {
+  color: #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
