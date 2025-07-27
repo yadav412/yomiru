@@ -22,6 +22,7 @@ app.use(cors({
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.json()); // Add this to parse JSON requests
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
@@ -445,6 +446,32 @@ app.get('/mal/search', async (req, res) => {
   }
 });
 
+// Simple Gemini API proxy for document formatting
+app.post('/api/generate', async (req, res) => {
+  try {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    
+    if (!GEMINI_API_KEY) {
+      console.warn('⚠️ GEMINI_API_KEY not found, using fallback formatting');
+      return res.status(500).json({ error: 'Gemini API not configured' });
+    }
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      req.body,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Gemini API Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to generate content' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
