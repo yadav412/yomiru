@@ -237,3 +237,66 @@ async function generateCodeChallenge(codeVerifier) {
 }
 
 const imageUrl = "https://example.com/myanimeimage.jpg";  
+
+// ghibli//
+
+<!-- <link rel="stylesheet" href="newCss.css">
+<link rel="icon" href="images/Website_logo_new.png" type="image/png">
+  <header>
+    <div class="logo"><a href="index.html"><img src="images/Website_logo_new.png" alt="Website logo"></a></div>
+    <nav class="navbar">
+      <a href="Ghibli.html" >Ghibli</a>
+
+
+   
+      <a href="tracemoe.html">Tracemoe</a>
+
+      <a href="recommendations.html">Recommendations</a>
+
+      <a href="chatbot.html">Chatbot</a>
+
+      <a href="about.html">About</a>
+
+      <button id="malLoginButton" style="font-size: medium;">Login</button>
+
+
+   <div class="search-button">
+      <button class="search-btn" onclick="window.location.href='search.html'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </button>
+    </div>
+     
+    </nav>
+      
+  </header>
+<body>
+  <section class="ghibli-wrapper">
+  <div class="carousel-ghibli" id="carousel">
+    <img src="images/totoro.jpeg" alt="Totoro Frame" class="carousel-image" />
+    <img src="images/ponyo.jpeg" alt="Frame 2" class="carousel-image" />
+    <img src="images/spirited away.jpeg" alt="Frame 3" class="carousel-image" />
+  </div>
+
+  <div class="ghibli-info">
+    <p><strong>Lorem Ipsum</strong><br>
+    word in classical literature, discovered the undoubtable source...<br>
+    He first line of Lorem Ipsum, "Lorem ipsum dolor sit amet...", comes from a line in section 1.10.32.</p>
+  </div>
+
+  <div class="ghibli-buttons">
+    <button class="ditch">Ditch</button>
+    <button class="watch">Watch</button>
+  </div>
+</section>
+
+<script src="main js.js"></script>
+
+    <footer>
+        <p class="copyright">© 2025 Yomiru. All rights reserved.</p>
+    </footer>
+</body>
+</html> --></body>
+</link>
