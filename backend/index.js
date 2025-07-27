@@ -24,17 +24,12 @@ app.use(cors({
 app.use(express.static(path.join(__dirname, '../public')));
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
-const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET; // Ensure this is loaded
+const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
 console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
-// Add a check to ensure CLIENT_SECRET is also loaded
-if (!CLIENT_ID || !CLIENT_SECRET) {
-    console.error("FATAL ERROR: MAL_CLIENT_ID or MAL_CLIENT_SECRET is not defined in environment variables.");
-}
 
-
-let access_token = ""; // Note: This is not ideal for production, see conclusion.
+let access_token = "";
 
 // Helper function to get redirect URI
 function getRedirectUri(req) {
@@ -45,8 +40,8 @@ function getRedirectUri(req) {
 
 // Health check endpoint for deployment
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
+  res.json({ 
+    status: 'OK', 
     timestamp: new Date().toISOString(),
     malConfigured: !!CLIENT_ID,
     corsOrigin: [
@@ -74,14 +69,12 @@ app.get("/login", (req, res) => {
   // Set as cookie for use in /callback
   res.cookie("code_verifier", codeVerifier, {
     httpOnly: true,
-    secure: true, // Recommended for production
-    sameSite: 'None', // Required for cross-site cookies
     maxAge: 300000 // 5 minutes
   });
 
   // Use environment variable or auto-detect redirect URI
   const redirectUri = getRedirectUri(req);
-  console.log("Using redirect URI for login:", redirectUri);
+  console.log("Using redirect URI:", redirectUri);
 
   const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
   `?response_type=code` +
@@ -98,30 +91,27 @@ app.get("/callback", async (req, res) => {
   const code = req.query.code;
   const codeVerifier = req.cookies.code_verifier;
 
-  if (!code) {
-    return res.status(400).send("Authorization code is missing.");
-  }
+  console.log("Client ID:", CLIENT_ID);
+  console.log("Redirect URI:", REDIRECT_URI);
+  console.log("Code Verifier:", codeVerifier);
+  console.log("Authorization Code:", code);
   if (!codeVerifier) {
-    console.error("Missing code_verifier cookie. The login flow may have timed out or failed.");
-    return res.status(400).send("Missing code_verifier. Please try logging in again.");
+    console.error("Missing code_verifier");
+    return res.status(400).send("Missing code_verifier. Try logging in again.");
   }
 
   try {
     const qs = require("querystring");
 
+    // Use same redirect URI logic as login route
     const redirectUri = getRedirectUri(req);
-    console.log("Using redirect URI for token exchange:", redirectUri);
 
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
       qs.stringify({
         grant_type: "authorization_code",
-        code: code,
+        code,
         client_id: CLIENT_ID,
-        // =========================================================
-        // === FIX: Add the client_secret to the request body ===
-        // =========================================================
-        client_secret: CLIENT_SECRET,
         code_verifier: codeVerifier,
         redirect_uri: redirectUri
       }),
@@ -133,16 +123,13 @@ app.get("/callback", async (req, res) => {
     );
 
     access_token = tokenRes.data.access_token;
-    console.log("✅ Successfully obtained access token.");
-
-    // Redirect to the frontend. Using an environment variable is best practice.
-    const frontendUrl = process.env.FRONTEND_URL || "https://yomiru.netlify.app";
-    res.redirect(`${frontendUrl}/index.html?login=success`);
-
+    // Redirect to the appropriate domain based on environment
+    const frontendUrl = process.env.FRONTEND_URL || req.get('host');
+    const redirectProtocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    res.redirect(`${redirectProtocol}://${frontendUrl}/index.html`);
   } catch (err) {
-    // Log the detailed error from MAL's API
     console.error("❌ Token exchange failed:", err.response?.data || err.message);
-    res.status(500).send("Login failed. Details: " + JSON.stringify(err.response?.data || err.message));
+    res.status(500).send("Login failed" + JSON.stringify(err.response?.data || err.message));
   }
 });
 
@@ -257,7 +244,7 @@ app.get("/mal/trending", async (req, res) => {
         "X-MAL-CLIENT-ID": CLIENT_ID
       }
     });
-
+    
     // Transform the response to match frontend expectations
     const anime = info.data.data.map(item => ({
       id: item.node.id,
@@ -267,7 +254,7 @@ app.get("/mal/trending", async (req, res) => {
       start_date: item.node.start_date,
       mean: item.node.mean
     }));
-
+    
     res.json({ anime });
   } catch (err) {
     console.error("Trending anime error:", err.response?.data || err.message);
@@ -311,9 +298,9 @@ app.get("/mal/similar/:id", async (req, res) => {
     // Filter anime that share genres and exclude the original anime
     const similar = similarAnime.data.data
       .map(item => item.node)
-      .filter(anime =>
-        anime.id !== parseInt(animeId) &&
-        anime.genres &&
+      .filter(anime => 
+        anime.id !== parseInt(animeId) && 
+        anime.genres && 
         anime.genres.some(genre => genres.some(originalGenre => originalGenre.id === genre.id))
       )
       .slice(0, limit)
@@ -364,3 +351,5 @@ function generateCodeChallenge(codeVerifier) {
     crypto.createHash("sha256").update(codeVerifier).digest()
   );
 }
+
+const imageUrl = "https://example.com/myanimeimage.jpg";  
