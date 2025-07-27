@@ -451,30 +451,38 @@ app.listen(PORT, () => {
 });
 
 function base64URLEncode(buffer) {
-  return Buffer.from(buffer)
+  return buffer
     .toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-    .replace(/=/g, '');
+    .replace(/=+$/, ''); // Remove all padding from the end
 }
 
 async function generateCodeVerifier() {
-  // Generate a cryptographically random 32-byte buffer
-  const buffer = crypto.randomBytes(32);
-  const codeVerifier = base64URLEncode(buffer);
-  console.log("🔐 Generated code verifier:", codeVerifier);
-  console.log("🔐 Code verifier length:", codeVerifier.length);
-  return codeVerifier;
+  // RFC 7636: Generate between 43-128 characters using specific charset
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  let result = '';
+  
+  // Generate exactly 128 characters for maximum entropy
+  for (let i = 0; i < 128; i++) {
+    const randomByte = crypto.randomBytes(1)[0];
+    result += charset[randomByte % charset.length];
+  }
+  
+  console.log("🔐 Generated RFC 7636 compliant code verifier");
+  console.log("🔐 Code verifier length:", result.length);
+  return result;
 }
 
 async function generateCodeChallenge(codeVerifier) {
-  console.log("🔐 Creating challenge for verifier:", codeVerifier);
-  // Create SHA256 hash of the code verifier
-  const encoder = new TextEncoder();
-  const data = encoder.encode(codeVerifier);
-  const hash = crypto.createHash('sha256').update(data).digest();
+  console.log("🔐 Creating challenge for verifier using SHA256+Base64URL");
+  
+  // Use Node.js crypto directly for consistent results
+  const hash = crypto.createHash('sha256').update(codeVerifier, 'ascii').digest();
   const challenge = base64URLEncode(hash);
+  
   console.log("🔐 Generated code challenge:", challenge);
+  console.log("🔐 Code challenge length:", challenge.length);
   return challenge;
 }
 
