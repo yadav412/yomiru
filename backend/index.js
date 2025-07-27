@@ -37,6 +37,24 @@ let access_token = "";
 // Hardcoded redirect URI to ensure absolute consistency
 const OAUTH_REDIRECT_URI = "https://final-project-10-streams.onrender.com/callback";
 
+// Store code verifiers temporarily (in production, use Redis or database)
+const codeVerifierStore = new Map();
+
+// Cleanup expired code verifiers every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [state, data] of codeVerifierStore.entries()) {
+    if (now > data.expires) {
+      codeVerifierStore.delete(state);
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) {
+    console.log(`🧹 Cleaned up ${cleaned} expired code verifiers`);
+  }
+}, 5 * 60 * 1000); // Every 5 minutes
+
 // Helper function to get redirect URI - always use the same hardcoded value
 function getRedirectUri(req) {
   console.log("🔧 Using hardcoded REDIRECT_URI:", OAUTH_REDIRECT_URI);
@@ -65,57 +83,61 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// === 1. Login route (WITH PKCE) ===
+// === 1. Login route (WITH PKCE + STATE) ===
 app.get("/login", (req, res) => {
-  console.log("🚀 LOGIN - Using OAuth flow WITH PKCE");
+  console.log("🚀 LOGIN - Using OAuth flow WITH PKCE + STATE");
 
   // Generate PKCE parameters
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
   
+  // Generate unique state parameter to correlate this request
+  const state = crypto.randomBytes(16).toString('hex');
+  
   console.log("🔐 Generated PKCE parameters:");
   console.log("  Code verifier:", codeVerifier.substring(0, 20) + "...");
   console.log("  Code challenge:", codeChallenge.substring(0, 20) + "...");
+  console.log("  State:", state);
 
-  // Store code verifier in a secure HTTP-only cookie
-  res.cookie('code_verifier', codeVerifier, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 10 * 60 * 1000 // 10 minutes
+  // Store code verifier with state as key (expires in 10 minutes)
+  codeVerifierStore.set(state, {
+    codeVerifier,
+    timestamp: Date.now(),
+    expires: Date.now() + (10 * 60 * 1000)
   });
 
   // Use environment variable redirect URI
   const redirectUri = getRedirectUri(req);
   console.log("🚀 LOGIN - Using redirect URI:", redirectUri);
 
-  // OAuth authorization URL with PKCE
+  // OAuth authorization URL with PKCE and state
   const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
   `?response_type=code` +
   `&client_id=${CLIENT_ID}` +
   `&redirect_uri=${encodeURIComponent(redirectUri)}` +
   `&code_challenge=${codeChallenge}` +
-  `&code_challenge_method=S256`;
+  `&code_challenge_method=S256` +
+  `&state=${state}`;
 
-  console.log("🚀 Complete authorization URL (WITH PKCE):", authUrl);
+  console.log("🚀 Complete authorization URL (WITH PKCE + STATE):", authUrl);
 
   res.redirect(authUrl);
 });
 
-// === 2. Callback handler (WITH PKCE) ===
+// === 2. Callback handler (WITH PKCE + STATE) ===
 app.get("/callback", async (req, res) => {
-  console.log("🔄 Callback endpoint hit (WITH PKCE)");
+  console.log("🔄 Callback endpoint hit (WITH PKCE + STATE)");
   console.log("Query params:", req.query);
   
   const code = req.query.code;
-  const codeVerifier = req.cookies.code_verifier;
+  const state = req.query.state;
 
-  console.log("🔍 OAuth Callback Debug (WITH PKCE):");
+  console.log("🔍 OAuth Callback Debug (WITH PKCE + STATE):");
   console.log("CLIENT_ID:", CLIENT_ID ? "✓ Present" : "❌ Missing");
   console.log("CLIENT_SECRET:", CLIENT_SECRET ? "✓ Present" : "❌ Missing");
   console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing");
   console.log("Authorization Code:", code ? "✓ Present" : "❌ Missing");
-  console.log("Code Verifier:", codeVerifier ? "✓ Present" : "❌ Missing");
+  console.log("State:", state ? "✓ Present" : "❌ Missing");
   
   // Check for OAuth error parameters
   if (req.query.error) {
@@ -131,10 +153,31 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("Missing authorization code from MyAnimeList.");
   }
 
-  if (!codeVerifier) {
-    console.error("❌ Missing code verifier from cookie");
-    return res.status(400).send("Missing code verifier. Please try logging in again.");
+  if (!state) {
+    console.error("❌ Missing state parameter");
+    return res.status(400).send("Missing state parameter. Please try logging in again.");
   }
+
+  // Retrieve code verifier using state
+  const storedData = codeVerifierStore.get(state);
+  if (!storedData) {
+    console.error("❌ No code verifier found for state:", state);
+    return res.status(400).send("Invalid or expired state. Please try logging in again.");
+  }
+
+  // Check if expired
+  if (Date.now() > storedData.expires) {
+    console.error("❌ Code verifier expired for state:", state);
+    codeVerifierStore.delete(state); // Clean up
+    return res.status(400).send("Authorization expired. Please try logging in again.");
+  }
+
+  const codeVerifier = storedData.codeVerifier;
+  console.log("✅ Retrieved code verifier for state:", state);
+  console.log("  Code verifier:", codeVerifier ? "✓ Present" : "❌ Missing");
+
+  // Clean up - remove used code verifier
+  codeVerifierStore.delete(state);
 
   // Use same redirect URI as login route
   const redirectUri = getRedirectUri(req);
@@ -143,7 +186,7 @@ app.get("/callback", async (req, res) => {
   try {
     const qs = require("querystring");
     
-    console.log("🚀 About to exchange code for token with PKCE:");
+    console.log("🚀 About to exchange code for token with PKCE + STATE:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
 
     const tokenRequestData = {
@@ -155,7 +198,7 @@ app.get("/callback", async (req, res) => {
       code_verifier: codeVerifier
     };
     
-    console.log("🚀 Token request data being sent (HYBRID PKCE + CLIENT_SECRET):");
+    console.log("🚀 Token request data being sent (HYBRID PKCE + CLIENT_SECRET + STATE):");
     console.log("  grant_type:", tokenRequestData.grant_type);
     console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
     console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
@@ -180,9 +223,6 @@ app.get("/callback", async (req, res) => {
     console.log("✅ Token exchange successful!");
     console.log("Access token received:", access_token ? "✓ Yes" : "❌ No");
     
-    // Clear the code verifier cookie since it's no longer needed
-    res.clearCookie('code_verifier');
-    
     // Redirect to the appropriate domain based on environment
     const frontendUrl = process.env.FRONTEND_URL || req.get('host');
     const redirectProtocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
@@ -191,14 +231,15 @@ app.get("/callback", async (req, res) => {
     console.log("🔄 Redirecting to:", finalRedirectUrl);
     res.redirect(finalRedirectUrl);
   } catch (err) {
-    console.error("❌ Token exchange failed (HYBRID PKCE + CLIENT_SECRET):", {
+    console.error("❌ Token exchange failed (HYBRID PKCE + CLIENT_SECRET + STATE):", {
       error: err.response?.data || err.message,
       status: err.response?.status,
       statusText: err.response?.statusText,
       clientId: CLIENT_ID ? "✓ Set" : "✗ Missing",
       clientSecret: CLIENT_SECRET ? "✓ Set" : "✗ Missing",
       codeVerifier: codeVerifier ? "✓ Set" : "✗ Missing",
-      redirectUri: redirectUri
+      redirectUri: redirectUri,
+      state: state
     });
     res.status(500).send("Login failed: " + JSON.stringify(err.response?.data || err.message));
   }
