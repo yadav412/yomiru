@@ -34,11 +34,13 @@ console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing - will use auto-detect
 
 let access_token = "";
 
-// Helper function to get redirect URI
+// Hardcoded redirect URI to ensure absolute consistency
+const OAUTH_REDIRECT_URI = "https://final-project-10-streams.onrender.com/callback";
+
+// Helper function to get redirect URI - always use the same hardcoded value
 function getRedirectUri(req) {
-  const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-  const host = req.get('host');
-  return REDIRECT_URI || `${protocol}://${host}/callback`;
+  console.log("🔧 Using hardcoded REDIRECT_URI:", OAUTH_REDIRECT_URI);
+  return OAUTH_REDIRECT_URI;
 }
 
 // Health check endpoint for deployment
@@ -68,16 +70,21 @@ app.get("/login", (req, res) => {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
-  console.log("Storing code_verifier:", codeVerifier);
+  console.log("🔐 PKCE Debug:");
+  console.log("  Generated code_verifier:", codeVerifier);
+  console.log("  Code verifier length:", codeVerifier.length);
+  console.log("  Generated code_challenge:", codeChallenge);
   // Set as cookie for use in /callback
   res.cookie("code_verifier", codeVerifier, {
     httpOnly: true,
+    secure: true, // Required for HTTPS
+    sameSite: 'lax', // Allow cross-site requests for OAuth
     maxAge: 300000 // 5 minutes
   });
 
-  // Use environment variable or auto-detect redirect URI
+  // Use environment variable redirect URI
   const redirectUri = getRedirectUri(req);
-  console.log("Using redirect URI:", redirectUri);
+  console.log("🚀 LOGIN - Using redirect URI:", redirectUri);
 
   const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
   `?response_type=code` +
@@ -93,10 +100,15 @@ app.get("/login", (req, res) => {
 app.get("/callback", async (req, res) => {
   console.log("🔄 Callback endpoint hit");
   console.log("Query params:", req.query);
-  console.log("Cookies:", req.cookies);
+  console.log("All cookies received:", req.cookies);
+  console.log("Headers:", req.headers);
   
   const code = req.query.code;
   const codeVerifier = req.cookies.code_verifier;
+  
+  console.log("🍪 Cookie Debug:");
+  console.log("  code_verifier cookie value:", codeVerifier);
+  console.log("  code_verifier length:", codeVerifier ? codeVerifier.length : 0);
 
   console.log("🔍 OAuth Callback Debug:");
   console.log("CLIENT_ID:", CLIENT_ID ? "✓ Present" : "❌ Missing");
@@ -105,6 +117,15 @@ app.get("/callback", async (req, res) => {
   console.log("Code Verifier:", codeVerifier ? "✓ Present" : "❌ Missing");
   console.log("Authorization Code:", code ? "✓ Present" : "❌ Missing");
   
+  // Check for OAuth error parameters
+  if (req.query.error) {
+    console.log("❌ MyAnimeList returned an error:");
+    console.log("  error:", req.query.error);
+    console.log("  error_description:", req.query.error_description);
+    console.log("  error_uri:", req.query.error_uri);
+    return res.status(400).send(`MyAnimeList authorization failed: ${req.query.error} - ${req.query.error_description || 'No description provided'}`);
+  }
+
   if (!codeVerifier) {
     console.error("❌ Missing code_verifier cookie");
     return res.status(400).send("Missing code_verifier. Try logging in again.");
@@ -115,26 +136,39 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("Missing authorization code from MyAnimeList.");
   }
 
-  // Use same redirect URI logic as login route
+  // Use same redirect URI as login route
   const redirectUri = getRedirectUri(req);
+  console.log("🔄 CALLBACK - Using redirect URI:", redirectUri);
   
   try {
     const qs = require("querystring");
     
     console.log("🚀 About to exchange code for token:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
-    console.log("Redirect URI being used:", redirectUri);
+
+    const tokenRequestData = {
+      grant_type: "authorization_code",
+      code,
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET, // MyAnimeList requires both client_secret AND PKCE
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri
+    };
+    
+    console.log("🚀 Token request data being sent:");
+    console.log("  grant_type:", tokenRequestData.grant_type);
+    console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
+    console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
+    console.log("  client_secret:", tokenRequestData.client_secret ? "✓ Present" : "❌ Missing");
+    console.log("  code_verifier:", tokenRequestData.code_verifier ? `${tokenRequestData.code_verifier.substring(0, 20)}...` : "❌ Missing");
+    console.log("  redirect_uri:", tokenRequestData.redirect_uri);
+    
+    const requestBody = qs.stringify(tokenRequestData);
+    console.log("🚀 URL-encoded request body:", requestBody);
 
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
-      qs.stringify({
-        grant_type: "authorization_code",
-        code,
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        code_verifier: codeVerifier,
-        redirect_uri: redirectUri
-      }),
+      requestBody,
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -372,18 +406,31 @@ app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });
 
-function base64URLEncode(str) {
-  return str.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function base64URLEncode(buffer) {
+  return buffer.toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, ""); // Remove ALL padding, not just trailing
 }
 
 function generateCodeVerifier() {
-  return base64URLEncode(crypto.randomBytes(32));
+  // Generate a longer, more standard code verifier (128 characters)
+  const buffer = crypto.randomBytes(96); // 96 bytes = 128 base64url chars
+  console.log("🔐 Raw code verifier buffer:", buffer);
+  const encoded = base64URLEncode(buffer);
+  console.log("🔐 Encoded code verifier:", encoded);
+  console.log("🔐 Code verifier length:", encoded.length);
+  return encoded;
 }
 
 function generateCodeChallenge(codeVerifier) {
-  return base64URLEncode(
-    crypto.createHash("sha256").update(codeVerifier).digest()
-  );
+  console.log("🔐 Input code verifier for challenge:", codeVerifier);
+  // Make sure we're using UTF-8 encoding explicitly
+  const hash = crypto.createHash("sha256").update(codeVerifier, 'utf8').digest();
+  console.log("🔐 SHA256 hash buffer:", hash);
+  const challenge = base64URLEncode(hash);
+  console.log("🔐 Final code challenge:", challenge);
+  return challenge;
 }
 
 const imageUrl = "https://example.com/myanimeimage.jpg";  
