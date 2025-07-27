@@ -117,6 +117,15 @@ app.get("/callback", async (req, res) => {
   console.log("Code Verifier:", codeVerifier ? "✓ Present" : "❌ Missing");
   console.log("Authorization Code:", code ? "✓ Present" : "❌ Missing");
   
+  // Check for OAuth error parameters
+  if (req.query.error) {
+    console.log("❌ MyAnimeList returned an error:");
+    console.log("  error:", req.query.error);
+    console.log("  error_description:", req.query.error_description);
+    console.log("  error_uri:", req.query.error_uri);
+    return res.status(400).send(`MyAnimeList authorization failed: ${req.query.error} - ${req.query.error_description || 'No description provided'}`);
+  }
+
   if (!codeVerifier) {
     console.error("❌ Missing code_verifier cookie");
     return res.status(400).send("Missing code_verifier. Try logging in again.");
