@@ -410,11 +410,12 @@ function base64URLEncode(buffer) {
   return buffer.toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
-    .replace(/=+$/, "");
+    .replace(/=/g, ""); // Remove ALL padding, not just trailing
 }
 
 function generateCodeVerifier() {
-  const buffer = crypto.randomBytes(32);
+  // Generate a longer, more standard code verifier (128 characters)
+  const buffer = crypto.randomBytes(96); // 96 bytes = 128 base64url chars
   console.log("🔐 Raw code verifier buffer:", buffer);
   const encoded = base64URLEncode(buffer);
   console.log("🔐 Encoded code verifier:", encoded);
@@ -424,7 +425,8 @@ function generateCodeVerifier() {
 
 function generateCodeChallenge(codeVerifier) {
   console.log("🔐 Input code verifier for challenge:", codeVerifier);
-  const hash = crypto.createHash("sha256").update(codeVerifier).digest();
+  // Make sure we're using UTF-8 encoding explicitly
+  const hash = crypto.createHash("sha256").update(codeVerifier, 'utf8').digest();
   console.log("🔐 SHA256 hash buffer:", hash);
   const challenge = base64URLEncode(hash);
   console.log("🔐 Final code challenge:", challenge);
