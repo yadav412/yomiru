@@ -137,16 +137,28 @@ app.get("/callback", async (req, res) => {
     console.log("🚀 About to exchange code for token:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
 
+    const tokenRequestData = {
+      grant_type: "authorization_code",
+      code,
+      client_id: CLIENT_ID,
+      // Note: Using PKCE instead of client_secret (as per OAuth 2.1 recommendations)
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri
+    };
+    
+    console.log("🚀 Token request data being sent:");
+    console.log("  grant_type:", tokenRequestData.grant_type);
+    console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
+    console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
+    console.log("  code_verifier:", tokenRequestData.code_verifier ? `${tokenRequestData.code_verifier.substring(0, 20)}...` : "❌ Missing");
+    console.log("  redirect_uri:", tokenRequestData.redirect_uri);
+    
+    const requestBody = qs.stringify(tokenRequestData);
+    console.log("🚀 URL-encoded request body:", requestBody);
+
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
-      qs.stringify({
-        grant_type: "authorization_code",
-        code,
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        code_verifier: codeVerifier,
-        redirect_uri: redirectUri
-      }),
+      requestBody,
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -384,18 +396,29 @@ app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });
 
-function base64URLEncode(str) {
-  return str.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function base64URLEncode(buffer) {
+  return buffer.toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function generateCodeVerifier() {
-  return base64URLEncode(crypto.randomBytes(32));
+  const buffer = crypto.randomBytes(32);
+  console.log("🔐 Raw code verifier buffer:", buffer);
+  const encoded = base64URLEncode(buffer);
+  console.log("🔐 Encoded code verifier:", encoded);
+  console.log("🔐 Code verifier length:", encoded.length);
+  return encoded;
 }
 
 function generateCodeChallenge(codeVerifier) {
-  return base64URLEncode(
-    crypto.createHash("sha256").update(codeVerifier).digest()
-  );
+  console.log("🔐 Input code verifier for challenge:", codeVerifier);
+  const hash = crypto.createHash("sha256").update(codeVerifier).digest();
+  console.log("🔐 SHA256 hash buffer:", hash);
+  const challenge = base64URLEncode(hash);
+  console.log("🔐 Final code challenge:", challenge);
+  return challenge;
 }
 
 const imageUrl = "https://example.com/myanimeimage.jpg";  
