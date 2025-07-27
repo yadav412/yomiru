@@ -27,7 +27,10 @@ const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-console.log("Loaded CLIENT_ID from env:", CLIENT_ID);
+console.log("🔍 Environment Variables Check:");
+console.log("CLIENT_ID:", CLIENT_ID ? "✓ Loaded" : "❌ Missing");
+console.log("CLIENT_SECRET:", CLIENT_SECRET ? "✓ Loaded" : "❌ Missing");
+console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing - will use auto-detect");
 
 let access_token = "";
 
@@ -112,6 +115,7 @@ app.get("/callback", async (req, res) => {
         grant_type: "authorization_code",
         code,
         client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
         code_verifier: codeVerifier,
         redirect_uri: redirectUri
       }),
@@ -128,8 +132,16 @@ app.get("/callback", async (req, res) => {
     const redirectProtocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
     res.redirect(`${redirectProtocol}://${frontendUrl}/index.html`);
   } catch (err) {
-    console.error("❌ Token exchange failed:", err.response?.data || err.message);
-    res.status(500).send("Login failed" + JSON.stringify(err.response?.data || err.message));
+    console.error("❌ Token exchange failed:", {
+      error: err.response?.data || err.message,
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      clientId: CLIENT_ID ? "✓ Set" : "✗ Missing",
+      clientSecret: CLIENT_SECRET ? "✓ Set" : "✗ Missing",
+      redirectUri: redirectUri,
+      codeVerifier: codeVerifier ? "✓ Present" : "✗ Missing"
+    });
+    res.status(500).send("Login failed: " + JSON.stringify(err.response?.data || err.message));
   }
 });
 
