@@ -141,7 +141,7 @@ app.get("/callback", async (req, res) => {
       grant_type: "authorization_code",
       code,
       client_id: CLIENT_ID,
-      // Note: Using PKCE instead of client_secret (as per OAuth 2.1 recommendations)
+      client_secret: CLIENT_SECRET, // MyAnimeList requires both client_secret AND PKCE
       code_verifier: codeVerifier,
       redirect_uri: redirectUri
     };
@@ -150,6 +150,7 @@ app.get("/callback", async (req, res) => {
     console.log("  grant_type:", tokenRequestData.grant_type);
     console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
     console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
+    console.log("  client_secret:", tokenRequestData.client_secret ? "✓ Present" : "❌ Missing");
     console.log("  code_verifier:", tokenRequestData.code_verifier ? `${tokenRequestData.code_verifier.substring(0, 20)}...` : "❌ Missing");
     console.log("  redirect_uri:", tokenRequestData.redirect_uri);
     
