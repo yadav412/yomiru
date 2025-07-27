@@ -268,4 +268,22 @@ main {
     font-weight: 400;
     background-color: transparent;
 } */
+.search-icon {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0.5rem;
+}
+
+.search-icon svg {
+  stroke: white; /* or any color to match your theme */
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease;
+}
+
+.search-icon:hover svg {
+  transform: scale(1.1);
+}
 
