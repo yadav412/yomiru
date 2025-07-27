@@ -34,15 +34,13 @@ console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing - will use auto-detect
 
 let access_token = "";
 
-// Helper function to get redirect URI - always use the environment variable for consistency
+// Hardcoded redirect URI to ensure absolute consistency
+const OAUTH_REDIRECT_URI = "https://final-project-10-streams.onrender.com/callback";
+
+// Helper function to get redirect URI - always use the same hardcoded value
 function getRedirectUri(req) {
-  console.log("🔧 Using REDIRECT_URI:", REDIRECT_URI);
-  
-  if (!REDIRECT_URI) {
-    throw new Error("REDIRECT_URI environment variable is required but not set");
-  }
-  
-  return REDIRECT_URI;
+  console.log("🔧 Using hardcoded REDIRECT_URI:", OAUTH_REDIRECT_URI);
+  return OAUTH_REDIRECT_URI;
 }
 
 // Health check endpoint for deployment
@@ -72,10 +70,15 @@ app.get("/login", (req, res) => {
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
 
-  console.log("Storing code_verifier:", codeVerifier);
+  console.log("🔐 PKCE Debug:");
+  console.log("  Generated code_verifier:", codeVerifier);
+  console.log("  Code verifier length:", codeVerifier.length);
+  console.log("  Generated code_challenge:", codeChallenge);
   // Set as cookie for use in /callback
   res.cookie("code_verifier", codeVerifier, {
     httpOnly: true,
+    secure: true, // Required for HTTPS
+    sameSite: 'lax', // Allow cross-site requests for OAuth
     maxAge: 300000 // 5 minutes
   });
 
@@ -97,10 +100,15 @@ app.get("/login", (req, res) => {
 app.get("/callback", async (req, res) => {
   console.log("🔄 Callback endpoint hit");
   console.log("Query params:", req.query);
-  console.log("Cookies:", req.cookies);
+  console.log("All cookies received:", req.cookies);
+  console.log("Headers:", req.headers);
   
   const code = req.query.code;
   const codeVerifier = req.cookies.code_verifier;
+  
+  console.log("🍪 Cookie Debug:");
+  console.log("  code_verifier cookie value:", codeVerifier);
+  console.log("  code_verifier length:", codeVerifier ? codeVerifier.length : 0);
 
   console.log("🔍 OAuth Callback Debug:");
   console.log("CLIENT_ID:", CLIENT_ID ? "✓ Present" : "❌ Missing");
