@@ -356,3 +356,29 @@ body.tracemoe {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(240, 0, 0, 0.4);
 }
+
+.devs {
+  display: flex;
+  justify-content: space-around; /* or use 'space-between' / 'center' */
+  align-items: flex-start;
+  margin: 40px auto;
+  flex-wrap: wrap; /* keeps it responsive on smaller screens */
+  gap: 20px;
+  max-width: 1200px;
+  background-color: rgba(0, 0, 0, 0.404);
+}
+
+.dev {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dev img {
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  margin-bottom: 10px;
+}

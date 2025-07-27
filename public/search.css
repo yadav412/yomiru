@@ -130,7 +130,7 @@ nav button:hover, nav input:hover, nav a:hover {
 }
 
 .search-icon {
-    color: #ff8c00;
+    color: #fd4747;
     margin-right: 10px;
 }
 
@@ -195,6 +195,7 @@ nav button:hover, nav input:hover, nav a:hover {
 
 .anime-card:hover .anime-card-inner {
     transform: rotateY(180deg);
+    transform: scale(1.8); /* Scale up on hover */
 }
 
 .anime-card-front, .anime-card-back {
@@ -220,7 +221,7 @@ nav button:hover, nav input:hover, nav a:hover {
 .anime-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);
-    border-color: #ff8c00;
+    border-color: #ff0000;
 }
 
 .card-image-container {
