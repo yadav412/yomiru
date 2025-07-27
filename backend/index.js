@@ -65,37 +65,57 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// === 1. Login route (SIMPLIFIED - NO PKCE) ===
+// === 1. Login route (WITH PKCE) ===
 app.get("/login", (req, res) => {
-  console.log("🚀 LOGIN - Using simplified OAuth flow WITHOUT PKCE");
+  console.log("🚀 LOGIN - Using OAuth flow WITH PKCE");
+
+  // Generate PKCE parameters
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+  
+  console.log("🔐 Generated PKCE parameters:");
+  console.log("  Code verifier:", codeVerifier.substring(0, 20) + "...");
+  console.log("  Code challenge:", codeChallenge.substring(0, 20) + "...");
+
+  // Store code verifier in a secure HTTP-only cookie
+  res.cookie('code_verifier', codeVerifier, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 10 * 60 * 1000 // 10 minutes
+  });
 
   // Use environment variable redirect URI
   const redirectUri = getRedirectUri(req);
   console.log("🚀 LOGIN - Using redirect URI:", redirectUri);
 
-  // Simple OAuth authorization URL without PKCE
+  // OAuth authorization URL with PKCE
   const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
   `?response_type=code` +
   `&client_id=${CLIENT_ID}` +
-  `&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+  `&code_challenge=${codeChallenge}` +
+  `&code_challenge_method=S256`;
 
-  console.log("🚀 Complete authorization URL (NO PKCE):", authUrl);
+  console.log("🚀 Complete authorization URL (WITH PKCE):", authUrl);
 
   res.redirect(authUrl);
 });
 
-// === 2. Callback handler (SIMPLIFIED - NO PKCE) ===
+// === 2. Callback handler (WITH PKCE) ===
 app.get("/callback", async (req, res) => {
-  console.log("🔄 Callback endpoint hit (SIMPLIFIED OAUTH)");
+  console.log("🔄 Callback endpoint hit (WITH PKCE)");
   console.log("Query params:", req.query);
   
   const code = req.query.code;
+  const codeVerifier = req.cookies.code_verifier;
 
-  console.log("🔍 OAuth Callback Debug (NO PKCE):");
+  console.log("🔍 OAuth Callback Debug (WITH PKCE):");
   console.log("CLIENT_ID:", CLIENT_ID ? "✓ Present" : "❌ Missing");
   console.log("CLIENT_SECRET:", CLIENT_SECRET ? "✓ Present" : "❌ Missing");
   console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing");
   console.log("Authorization Code:", code ? "✓ Present" : "❌ Missing");
+  console.log("Code Verifier:", codeVerifier ? "✓ Present" : "❌ Missing");
   
   // Check for OAuth error parameters
   if (req.query.error) {
@@ -111,6 +131,11 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("Missing authorization code from MyAnimeList.");
   }
 
+  if (!codeVerifier) {
+    console.error("❌ Missing code verifier from cookie");
+    return res.status(400).send("Missing code verifier. Please try logging in again.");
+  }
+
   // Use same redirect URI as login route
   const redirectUri = getRedirectUri(req);
   console.log("🔄 CALLBACK - Using redirect URI:", redirectUri);
@@ -118,23 +143,23 @@ app.get("/callback", async (req, res) => {
   try {
     const qs = require("querystring");
     
-    console.log("🚀 About to exchange code for token:");
+    console.log("🚀 About to exchange code for token with PKCE:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
 
     const tokenRequestData = {
       grant_type: "authorization_code",
       code,
       client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET, // Using standard client_secret authentication
-      redirect_uri: redirectUri
+      redirect_uri: redirectUri,
+      code_verifier: codeVerifier // Using PKCE code verifier instead of client_secret
     };
     
-    console.log("🚀 Token request data being sent (SIMPLIFIED):");
+    console.log("🚀 Token request data being sent (WITH PKCE):");
     console.log("  grant_type:", tokenRequestData.grant_type);
     console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
     console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
-    console.log("  client_secret:", tokenRequestData.client_secret ? "✓ Present" : "❌ Missing");
     console.log("  redirect_uri:", tokenRequestData.redirect_uri);
+    console.log("  code_verifier:", tokenRequestData.code_verifier ? "✓ Present" : "❌ Missing");
     
     const requestBody = qs.stringify(tokenRequestData);
     console.log("🚀 URL-encoded request body:", requestBody);
@@ -153,6 +178,9 @@ app.get("/callback", async (req, res) => {
     console.log("✅ Token exchange successful!");
     console.log("Access token received:", access_token ? "✓ Yes" : "❌ No");
     
+    // Clear the code verifier cookie since it's no longer needed
+    res.clearCookie('code_verifier');
+    
     // Redirect to the appropriate domain based on environment
     const frontendUrl = process.env.FRONTEND_URL || req.get('host');
     const redirectProtocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
@@ -161,12 +189,12 @@ app.get("/callback", async (req, res) => {
     console.log("🔄 Redirecting to:", finalRedirectUrl);
     res.redirect(finalRedirectUrl);
   } catch (err) {
-    console.error("❌ Token exchange failed (SIMPLIFIED):", {
+    console.error("❌ Token exchange failed (WITH PKCE):", {
       error: err.response?.data || err.message,
       status: err.response?.status,
       statusText: err.response?.statusText,
       clientId: CLIENT_ID ? "✓ Set" : "✗ Missing",
-      clientSecret: CLIENT_SECRET ? "✓ Set" : "✗ Missing",
+      codeVerifier: codeVerifier ? "✓ Set" : "✗ Missing",
       redirectUri: redirectUri
     });
     res.status(500).send("Login failed: " + JSON.stringify(err.response?.data || err.message));
