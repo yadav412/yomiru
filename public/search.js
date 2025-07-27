@@ -1,7 +1,10 @@
 // Search functionality
 let searchTimeout;
 let currentSearchTerm = '';
-const API_BASE = "https://final-project-10-streams.onrender.com";
+// Detect environment and set API base URL accordingly
+const API_BASE = window.location.hostname === 'localhost' 
+  ? "http://localhost:3000" 
+  : "https://final-project-10-streams.onrender.com";
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');

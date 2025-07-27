@@ -107,7 +107,7 @@ main {
 
 .carousel img {
   height: 300px;
-  width: 200px;
+  width: 500px;
   object-fit: cover;
   margin-right: 1rem;
   border-radius: 15px;
@@ -159,7 +159,7 @@ main {
 }
 
 .carousel-item img {
-  width: 250px;
+  width: 450px;
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

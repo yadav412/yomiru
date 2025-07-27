@@ -1,4 +1,7 @@
-const API_BASE = "https://final-project-10-streams-q2e3.onrender.com";
+// Detect environment and set API base URL accordingly
+const API_BASE = window.location.hostname === 'localhost' 
+  ? "http://localhost:3000" 
+  : "https://final-project-10-streams.onrender.com";
 
 function loginWithMAL() {
   window.location.href = `${API_BASE}/login`;

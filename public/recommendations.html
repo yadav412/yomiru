@@ -6,17 +6,19 @@
   <title>Yomiru - Anime Recommendations</title>
   <link rel="stylesheet" href="newCss.css">
   <link rel="stylesheet" href="recommendations.css">
-  <link rel="icon" href="images/logo.png" type="image/png">
+  <link rel="stylesheet" href="recommendations.css">
+<link rel="icon" href="images/logo.png" type="image/png">
 </head>
-<body style="min-height:100vh; margin:0; display:flex; flex-direction:column;">
+<body style="min-height:100vh; margin:0; display:flex; flex-direction:column;" style="min-height:100vh; margin:0; display:flex; flex-direction:column;">
   <header>
     <div class="logo"><a href="index.html"><img src="images/Website_logo_new.png" alt="Website logo"></a></div>
     <nav class="navbar">
       <a href="Ghibli.html">Ghibli</a>
       <a href="tracemoe.html">Tracemoe</a>
       <a href="recommendations.html">Recommendations</a>
-      <a href="anime.html">Chatbot</a>
+      <a href="chatbot.html">Chatbot</a>
       <a href="about.html">About</a>
+      <button id="malLoginButton" style="font-size: medium;">Login</button>
       <div class="search-button">
         <button class="search-btn" onclick="window.location.href='search.html'">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -27,8 +29,7 @@
       </div>
     </nav>
   </header>
-
-  <main style="flex:1; display:flex; align-items:center; justify-content:center; min-height:0;">
+<body>
   <section class="anime-recommendation-wrapper">
     <div class="anime-card-container">
       <div id="anime-cards">
@@ -47,29 +48,31 @@
             <path d="M6 6L18 18" stroke="white" stroke-width="3" stroke-linecap="round"/>
           </svg>
         </button>
-        <button class="tinder-btn check" id="check-btn" title="Like">
+        <button class="tinder-btn check" id="check-btn" title="Like & Add to Watchlist">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
+        </button>
+      </div>
+      
+      <div class="download-section">
+        <button class="download-btn" id="download-docs-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="7,10 12,15 17,10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="15" x2="12" y2="3" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Download Watchlist (<span id="docs-count">0</span>)</span>
         </button>
       </div>
     </div>
   </section>
 
   <script>
-    // Environment-aware API configuration
-    function getApiBase() {
-      // Check if we're on localhost (development)
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return "http://localhost:3000";
-      }
-      
-      // Production backend URL (same as main js.js)
-      return "https://final-project-10-streams-q2e3.onrender.com";
-    }
-    
-    const API_BASE = getApiBase();
-    console.log('🔗 Using API Base:', API_BASE);
+    // Detect environment and set API base URL accordingly
+    const API_BASE = window.location.hostname === 'localhost' 
+      ? "http://localhost:3000" 
+      : "https://final-project-10-streams.onrender.com";
     
     // Store user likes for recommendation algorithm
     let userLikes = [];
@@ -81,6 +84,10 @@
     // Track shown anime to prevent repeats
     let shownAnimeIds = new Set();
     let currentOffset = 0; // For pagination when fetching more trending anime
+    
+    // Document/Watchlist functionality
+    let watchlistAnime = [];
+    let watchlistIds = new Set();
     
     const cardsContainer = document.getElementById('anime-cards');
     let isLoading = true;
@@ -645,11 +652,14 @@
       shownAnimeIds.add(currentAnime.id);
       console.log(`✅ Added anime ID ${currentAnime.id} to shown list. Total shown: ${shownAnimeIds.size}`);
       
-      // If user liked the anime, add to likes and update recommendations
+      // If user liked the anime, add to likes AND add to watchlist
       if (direction === 'right') {
         userLikes.push(currentAnime);
         console.log('💖 Added to likes:', currentAnime.title);
         console.log('Total likes:', userLikes.length);
+        
+        // Automatically add to watchlist when user likes
+        addToWatchlist(currentAnime, false); // false = don't show notification since we're swiping
         
         // Refresh recommendations every 2 likes to get new similar anime
         if (userLikes.length % 2 === 0) {
@@ -836,115 +846,291 @@
     
     // Test backend connectivity
     async function testBackendConnectivity() {
+      console.log('🔍 Testing backend connectivity...');
       try {
-        console.log('🔍 Testing backend connectivity...');
-        const response = await fetch(`${API_BASE}/health`, {
+        const response = await fetch(`${API_BASE}/mal/trending?limit=1`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         });
         
+        console.log('🔗 Backend connectivity test:', response.status, response.statusText);
+        
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Backend is online:', data);
+          console.log('✅ Backend is reachable. Sample data:', data);
           return true;
         } else {
-          console.error('❌ Backend health check failed:', response.status, response.statusText);
+          console.error('❌ Backend returned error:', response.status);
           return false;
         }
       } catch (error) {
-        console.error('❌ Backend connectivity test failed:', error);
-        console.error('🚨 This means the backend is not accessible. Check if:');
-        console.error('   1. Backend is deployed and running');
-        console.error('   2. CORS is configured correctly');
-        console.error('   3. API_BASE URL is correct:', API_BASE);
+        console.error('❌ Cannot reach backend:', error.message);
+        console.error('This might be a CORS issue or the backend is not running');
         return false;
       }
     }
 
-    // Initialize recommendations system
     async function initializeRecommendations() {
-      console.log('🚀 Initializing recommendation system...');
+      console.log('=== INITIALIZING RECOMMENDATIONS ===');
       
       // Test backend connectivity first
-      const backendOnline = await testBackendConnectivity();
-      if (!backendOnline) {
-        console.error('🚨 Backend is not accessible - falling back to demo data');
-        // Show user-friendly error message
-        const errorDiv = document.createElement('div');
-        errorDiv.innerHTML = `
-          <div style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin: 20px; border-left: 4px solid #c62828;">
-            <strong>⚠️ Connection Error</strong><br>
-            Unable to connect to the recommendation server. Using demo data only.<br>
-            <small>Backend URL: ${API_BASE}</small>
-          </div>
-        `;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
+      const backendReachable = await testBackendConnectivity();
+      if (!backendReachable) {
+        console.warn('⚠️ Backend not reachable, using demo data only');
+        displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+        createCards();
+        updateInfo(current);
+        return;
       }
       
       showLoading();
       
       try {
-        // Fetch initial data
+        // Try to fetch from API first
+        console.log('Fetching trending anime from API...');
         trendingAnimeList = await fetchTrendingAnime();
-        console.log('📊 Initial trending anime loaded:', trendingAnimeList.length);
+        console.log('✅ Fetched trending anime:', trendingAnimeList.length, 'items');
+        console.log('First anime:', trendingAnimeList[0]);
         
         if (trendingAnimeList.length === 0) {
-          console.warn('⚠️ No trending anime received, using demo data');
+          console.warn('⚠️ No trending anime received from API');
           trendingAnimeList = getDemoTrendingAnime();
+          console.log('Using demo data:', trendingAnimeList.length, 'items');
         }
         
-        // Create initial display queue
-        displayQueue = createDisplayQueue(similarAnimeList, trendingAnimeList);
-        console.log('🎯 Initial display queue created:', displayQueue.length, 'anime');
-        
-        if (displayQueue.length === 0) {
-          console.error('❌ No anime in display queue! Something went wrong.');
-          hideLoading();
-          return;
-        }
-        
-        // Create cards and show first anime
-        createCards();
-        updateInfo(0);
-        
-        hideLoading();
-        console.log('✅ Recommendation system initialized successfully!');
-        
-      } catch (error) {
-        console.error('❌ Failed to initialize recommendations:', error);
-        
-        // Fallback to demo data
-        console.log('🔄 Falling back to demo data...');
-        trendingAnimeList = getDemoTrendingAnime();
+        console.log('Creating display queue...');
         displayQueue = createDisplayQueue([], trendingAnimeList);
-        createCards();
-        updateInfo(0);
-        hideLoading();
+        console.log('✅ Created display queue:', displayQueue.length, 'items');
+        console.log('First queue item:', displayQueue[0]);
         
-        // Show error to user
-        const errorDiv = document.createElement('div');
-        errorDiv.innerHTML = `
-          <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 20px; border-left: 4px solid #ffc107;">
-            <strong>⚠️ Limited Mode</strong><br>
-            Could not load fresh anime data. Showing demo content only.<br>
-            <small>Error: ${error.message}</small>
-          </div>
-        `;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
+        if (displayQueue.length > 0) {
+          console.log('Creating cards...');
+          createCards();
+          console.log('Updating info for current anime...');
+          updateInfo(current);
+          console.log('✅ Successfully initialized with data');
+        } else {
+          console.error('❌ Display queue is empty, using demo data');
+          displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+          console.log('Demo fallback queue:', displayQueue);
+          createCards();
+          updateInfo(current);
+        }
+      } catch (error) {
+        console.error('❌ Error initializing recommendations:', error);
+        console.log('Using demo data as final fallback');
+        displayQueue = getDemoTrendingAnime().map(anime => ({ ...anime, source: 'trending' }));
+        createCards();
+        updateInfo(current);
+      } finally {
+        hideLoading();
+        console.log('=== INITIALIZATION COMPLETE ===');
       }
     }
     
+    // Document/Watchlist functions
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => notification.classList.add('show'), 100);
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+      }, 3000);
+    }
+    
+    function addToWatchlist(anime = null, showNotif = true) {
+      const targetAnime = anime || displayQueue[current];
+      if (!targetAnime) {
+        if (showNotif) showNotification('No anime selected!', 'error');
+        return;
+      }
+      
+      // Check if already in watchlist
+      if (watchlistIds.has(targetAnime.id)) {
+        if (showNotif) showNotification(`${targetAnime.title} is already in your watchlist!`, 'error');
+        return;
+      }
+      
+      // Add to watchlist
+      watchlistAnime.push({
+        id: targetAnime.id,
+        title: targetAnime.title,
+        synopsis: targetAnime.synopsis || 'No synopsis available.',
+        source: targetAnime.source,
+        addedDate: new Date().toLocaleDateString(),
+        image: targetAnime.main_picture?.large || targetAnime.main_picture?.medium || 'N/A'
+      });
+      
+      watchlistIds.add(targetAnime.id);
+      updateWatchlistCounter();
+      
+      if (showNotif) {
+        showNotification(`Added "${targetAnime.title}" to watchlist!`, 'success');
+      }
+      
+      console.log('📝 Added to watchlist:', targetAnime.title);
+      console.log('📊 Total watchlist items:', watchlistAnime.length);
+    }
+    
+    function updateWatchlistCounter() {
+      const counterElement = document.getElementById('docs-count');
+      counterElement.textContent = watchlistAnime.length;
+      
+      // Add pulse animation when counter updates
+      counterElement.style.transform = 'scale(1.3)';
+      counterElement.style.color = '#4ecdc4';
+      setTimeout(() => {
+        counterElement.style.transform = 'scale(1)';
+        counterElement.style.color = 'white';
+      }, 200);
+      
+      // Enable/disable download button based on watchlist content
+      const downloadBtn = document.getElementById('download-docs-btn');
+      if (watchlistAnime.length === 0) {
+        downloadBtn.disabled = true;
+        downloadBtn.style.opacity = '0.5';
+      } else {
+        downloadBtn.disabled = false;
+        downloadBtn.style.opacity = '1';
+      }
+    }
+    
+    async function formatWatchlistWithGemini(animeList) {
+      try {
+        console.log('Formatting watchlist with Gemini...');
+        
+        // Prepare anime data for Gemini
+        const animeData = animeList.map(anime => ({
+          title: anime.title,
+          synopsis: anime.synopsis,
+          source: anime.source,
+          addedDate: anime.addedDate
+        }));
+        
+        const prompt = `Please format this anime watchlist into a beautiful, well-organized document. Make it professional and easy to read:
+
+${JSON.stringify(animeData, null, 2)}
+
+Format it as:
+1. A nice header/title
+2. A brief introduction 
+3. Organized list of anime with descriptions
+4. Maybe add some emojis and formatting to make it visually appealing
+5. Include the date each anime was added
+6. Add a footer with the total count
+
+Make it ready for saving as a text document.`;
+
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }]
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.candidates[0].content.parts[0].text;
+        } else {
+          console.warn('Gemini API failed, using fallback formatting');
+          return formatWatchlistFallback(animeList);
+        }
+      } catch (error) {
+        console.error('Error with Gemini formatting:', error);
+        return formatWatchlistFallback(animeList);
+      }
+    }
+    
+    function formatWatchlistFallback(animeList) {
+      let document = `🎌 MY ANIME WATCHLIST 🎌\n`;
+      document += `═══════════════════════════════════════\n\n`;
+      document += `📅 Generated on: ${new Date().toLocaleDateString()}\n`;
+      document += `📊 Total Anime: ${animeList.length}\n\n`;
+      
+      if (animeList.length === 0) {
+        document += `Your watchlist is empty! Start adding anime you're interested in.\n\n`;
+      } else {
+        document += `✨ RECOMMENDED FOR YOU ✨\n\n`;
+        
+        animeList.forEach((anime, index) => {
+          document += `${index + 1}. 📺 ${anime.title}\n`;
+          document += `   📝 ${anime.synopsis}\n`;
+          document += `   🏷️  Source: ${anime.source === 'similar' ? 'Based on your likes' : 'Trending'}\n`;
+          document += `   📅 Added: ${anime.addedDate}\n`;
+          if (anime.image && anime.image !== 'N/A') {
+            document += `   🖼️  Image: ${anime.image}\n`;
+          }
+          document += `\n`;
+        });
+      }
+      
+      document += `═══════════════════════════════════════\n`;
+      document += `🌟 Happy watching! Generated by Yomiru 🌟\n`;
+      document += `🔗 Visit us at: ${window.location.origin}\n`;
+      
+      return document;
+    }
+    
+    async function downloadWatchlist() {
+      if (watchlistAnime.length === 0) {
+        showNotification('Your watchlist is empty!', 'error');
+        return;
+      }
+      
+      try {
+        showNotification('Generating your watchlist document...', 'success');
+        
+        // Try to format with Gemini, fallback to basic formatting
+        const formattedDocument = await formatWatchlistWithGemini(watchlistAnime);
+        
+        // Create and download the file
+        const blob = new Blob([formattedDocument], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Yomiru-Watchlist-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showNotification(`Downloaded watchlist with ${watchlistAnime.length} anime!`, 'success');
+        
+      } catch (error) {
+        console.error('Error downloading watchlist:', error);
+        showNotification('Error creating download. Please try again.', 'error');
+      }
+    }
+    
+    // Event listeners
     document.getElementById('cross-btn').addEventListener('click', () => swipeCard('left'));
     document.getElementById('check-btn').addEventListener('click', () => swipeCard('right'));
+    document.getElementById('download-docs-btn').addEventListener('click', downloadWatchlist);
+    
+    // Initialize watchlist counter
+    updateWatchlistCounter();
     
     initializeRecommendations();
   </script>
-  </main>
 
-    <footer>
-       <p class="copyright">© 2025 Yomiru. All rights reserved.</p>
+
+<footer>
+        <p class="copyright">© 2025 Yomiru. All rights reserved.</p>
     </footer>
 </body>
-</html>

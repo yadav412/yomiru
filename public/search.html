@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search - Yomiru</title>
     <link rel="stylesheet" href="search.css">
-    <link rel="icon" type="image/png" href="images/naruto.jpg">
+    <link rel="icon" type="image/png" href="images/Website_logo_new.png">
 </head>
-   <header>
+   <header class="bar">
     <div class="logo"><a href="index.html"><img src="images/Website_logo_new.png" alt="Website logo"></a></div>
     <nav class="navbar">
       <a href="Ghibli.html" >Ghibli</a>
@@ -18,7 +18,7 @@
 
       <a href="recommendations.html">Recommendations</a>
 
-      <a href="anime.html">Chatbot</a>
+      <a href="chatbot.html">Chatbot</a>
 
       <a href="about.html">About</a>
 
@@ -78,3 +78,22 @@
   </footer>
 </body>
 </html>
+
+
+<script>
+    let prevScrollPos = window.pageYOffset;
+
+    window.onscroll = function () {
+      const currentScrollPos = window.pageYOffset;
+      const navbar = document.getElementById("bar");
+
+      if (prevScrollPos > currentScrollPos) {
+        navbar.style.top = "0";
+      } else {
+        navbar.style.top = "-80px";
+      }
+
+      prevScrollPos = currentScrollPos;
+    };
+
+  </script>
