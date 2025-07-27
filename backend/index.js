@@ -9,6 +9,9 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 3000
 
+const CLIENT_ID = process.env.MAL_CLIENT_ID;
+const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
 // Update CORS to allow both Netlify and Render domains
 app.use(cors({
   origin: [
