@@ -34,11 +34,15 @@ console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing - will use auto-detect
 
 let access_token = "";
 
-// Helper function to get redirect URI
+// Helper function to get redirect URI - always use the environment variable for consistency
 function getRedirectUri(req) {
-  const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-  const host = req.get('host');
-  return REDIRECT_URI || `${protocol}://${host}/callback`;
+  console.log("🔧 Using REDIRECT_URI:", REDIRECT_URI);
+  
+  if (!REDIRECT_URI) {
+    throw new Error("REDIRECT_URI environment variable is required but not set");
+  }
+  
+  return REDIRECT_URI;
 }
 
 // Health check endpoint for deployment
@@ -75,9 +79,9 @@ app.get("/login", (req, res) => {
     maxAge: 300000 // 5 minutes
   });
 
-  // Use environment variable or auto-detect redirect URI
+  // Use environment variable redirect URI
   const redirectUri = getRedirectUri(req);
-  console.log("Using redirect URI:", redirectUri);
+  console.log("🚀 LOGIN - Using redirect URI:", redirectUri);
 
   const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
   `?response_type=code` +
@@ -115,15 +119,15 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("Missing authorization code from MyAnimeList.");
   }
 
-  // Use same redirect URI logic as login route
+  // Use same redirect URI as login route
   const redirectUri = getRedirectUri(req);
+  console.log("🔄 CALLBACK - Using redirect URI:", redirectUri);
   
   try {
     const qs = require("querystring");
     
     console.log("🚀 About to exchange code for token:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
-    console.log("Redirect URI being used:", redirectUri);
 
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
