@@ -115,11 +115,11 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("Missing authorization code from MyAnimeList.");
   }
 
+  // Use same redirect URI logic as login route
+  const redirectUri = getRedirectUri(req);
+  
   try {
     const qs = require("querystring");
-
-    // Use same redirect URI logic as login route
-    const redirectUri = getRedirectUri(req);
     
     console.log("🚀 About to exchange code for token:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
