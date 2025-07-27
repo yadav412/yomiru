@@ -12,15 +12,22 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@panva/oauth4webapi": "^1.2.1",
     "axios": "^1.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.6.0",
     "express": "^5.1.0",
     "node-fetch": "^2.7.0",
+    "oauth4webapi": "^3.6.0",
     "qs": "^6.14.0"
   },
-  "keywords": ["anime", "streaming", "myanimelist", "recommendations"],
+  "keywords": [
+    "anime",
+    "streaming",
+    "myanimelist",
+    "recommendations"
+  ],
   "author": "",
   "license": "ISC"
-} 
+}

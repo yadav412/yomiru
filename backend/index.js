@@ -84,44 +84,49 @@ app.get('/', (req, res) => {
 });
 
 // === 1. Login route (WITH PKCE + STATE) ===
-app.get("/login", (req, res) => {
+app.get("/login", async (req, res) => {
   console.log("🚀 LOGIN - Using OAuth flow WITH PKCE + STATE");
 
-  // Generate PKCE parameters
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = generateCodeChallenge(codeVerifier);
-  
-  // Generate unique state parameter to correlate this request
-  const state = crypto.randomBytes(16).toString('hex');
-  
-  console.log("🔐 Generated PKCE parameters:");
-  console.log("  Code verifier:", codeVerifier.substring(0, 20) + "...");
-  console.log("  Code challenge:", codeChallenge.substring(0, 20) + "...");
-  console.log("  State:", state);
+  try {
+    // Generate PKCE parameters
+    const codeVerifier = await generateCodeVerifier();
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    
+    // Generate unique state parameter to correlate this request
+    const state = crypto.randomBytes(16).toString('hex');
+    
+    console.log("🔐 Generated PKCE parameters:");
+    console.log("  Code verifier:", codeVerifier.substring(0, 20) + "...");
+    console.log("  Code challenge:", codeChallenge.substring(0, 20) + "...");
+    console.log("  State:", state);
 
-  // Store code verifier with state as key (expires in 10 minutes)
-  codeVerifierStore.set(state, {
-    codeVerifier,
-    timestamp: Date.now(),
-    expires: Date.now() + (10 * 60 * 1000)
-  });
+    // Store code verifier with state as key (expires in 10 minutes)
+    codeVerifierStore.set(state, {
+      codeVerifier,
+      timestamp: Date.now(),
+      expires: Date.now() + (10 * 60 * 1000)
+    });
 
-  // Use environment variable redirect URI
-  const redirectUri = getRedirectUri(req);
-  console.log("🚀 LOGIN - Using redirect URI:", redirectUri);
+    // Use environment variable redirect URI
+    const redirectUri = getRedirectUri(req);
+    console.log("🚀 LOGIN - Using redirect URI:", redirectUri);
 
-  // OAuth authorization URL with PKCE and state
-  const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
-  `?response_type=code` +
-  `&client_id=${CLIENT_ID}` +
-  `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-  `&code_challenge=${codeChallenge}` +
-  `&code_challenge_method=S256` +
-  `&state=${state}`;
+    // OAuth authorization URL with PKCE and state
+    const authUrl = `https://myanimelist.net/v1/oauth2/authorize` +
+    `?response_type=code` +
+    `&client_id=${CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&code_challenge=${codeChallenge}` +
+    `&code_challenge_method=S256` +
+    `&state=${state}`;
 
-  console.log("🚀 Complete authorization URL (WITH PKCE + STATE):", authUrl);
+    console.log("🚀 Complete authorization URL (WITH PKCE + STATE):", authUrl);
 
-  res.redirect(authUrl);
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error("❌ Error generating PKCE parameters:", error);
+    res.status(500).send("Failed to generate login parameters");
+  }
 });
 
 // === 2. Callback handler (WITH PKCE + STATE) ===
@@ -184,34 +189,29 @@ app.get("/callback", async (req, res) => {
   console.log("🔄 CALLBACK - Using redirect URI:", redirectUri);
   
   try {
-    const qs = require("querystring");
-    
-    console.log("🚀 About to exchange code for token with PKCE + STATE:");
+    console.log("🚀 About to exchange code for token with IMPROVED PKCE + STATE:");
     console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
 
     const tokenRequestData = {
       grant_type: "authorization_code",
       code,
       client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET, // MyAnimeList requires both client_secret and code_verifier for PKCE
+      client_secret: CLIENT_SECRET,
       redirect_uri: redirectUri,
       code_verifier: codeVerifier
     };
     
-    console.log("🚀 Token request data being sent (HYBRID PKCE + CLIENT_SECRET + STATE):");
+    console.log("🚀 Token request data being sent (IMPROVED PKCE + STATE):");
     console.log("  grant_type:", tokenRequestData.grant_type);
     console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
     console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
     console.log("  client_secret:", tokenRequestData.client_secret ? "✓ Present" : "❌ Missing");
     console.log("  redirect_uri:", tokenRequestData.redirect_uri);
-    console.log("  code_verifier:", tokenRequestData.code_verifier ? "✓ Present" : "❌ Missing");
-    
-    const requestBody = qs.stringify(tokenRequestData);
-    console.log("🚀 URL-encoded request body:", requestBody);
+    console.log("  code_verifier:", tokenRequestData.code_verifier ? `${tokenRequestData.code_verifier.substring(0, 20)}...` : "❌ Missing");
 
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
-      requestBody,
+      new URLSearchParams(tokenRequestData).toString(),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -231,13 +231,13 @@ app.get("/callback", async (req, res) => {
     console.log("🔄 Redirecting to:", finalRedirectUrl);
     res.redirect(finalRedirectUrl);
   } catch (err) {
-    console.error("❌ Token exchange failed (HYBRID PKCE + CLIENT_SECRET + STATE):", {
+    console.error("❌ Token exchange failed (IMPROVED PKCE + STATE):", {
       error: err.response?.data || err.message,
       status: err.response?.status,
       statusText: err.response?.statusText,
       clientId: CLIENT_ID ? "✓ Set" : "✗ Missing",
       clientSecret: CLIENT_SECRET ? "✓ Set" : "✗ Missing",
-      codeVerifier: codeVerifier ? "✓ Set" : "✗ Missing",
+      codeVerifier: codeVerifier ? `${codeVerifier.substring(0, 20)}...` : "✗ Missing",
       redirectUri: redirectUri,
       state: state
     });
@@ -451,29 +451,30 @@ app.listen(PORT, () => {
 });
 
 function base64URLEncode(buffer) {
-  return buffer.toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, ""); // Remove ALL padding, not just trailing
+  return Buffer.from(buffer)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
 }
 
-function generateCodeVerifier() {
-  // Generate a longer, more standard code verifier (128 characters)
-  const buffer = crypto.randomBytes(96); // 96 bytes = 128 base64url chars
-  console.log("🔐 Raw code verifier buffer:", buffer);
-  const encoded = base64URLEncode(buffer);
-  console.log("🔐 Encoded code verifier:", encoded);
-  console.log("🔐 Code verifier length:", encoded.length);
-  return encoded;
+async function generateCodeVerifier() {
+  // Generate a cryptographically random 32-byte buffer
+  const buffer = crypto.randomBytes(32);
+  const codeVerifier = base64URLEncode(buffer);
+  console.log("🔐 Generated code verifier:", codeVerifier);
+  console.log("🔐 Code verifier length:", codeVerifier.length);
+  return codeVerifier;
 }
 
-function generateCodeChallenge(codeVerifier) {
-  console.log("🔐 Input code verifier for challenge:", codeVerifier);
-  // Make sure we're using UTF-8 encoding explicitly
-  const hash = crypto.createHash("sha256").update(codeVerifier, 'utf8').digest();
-  console.log("🔐 SHA256 hash buffer:", hash);
+async function generateCodeChallenge(codeVerifier) {
+  console.log("🔐 Creating challenge for verifier:", codeVerifier);
+  // Create SHA256 hash of the code verifier
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const hash = crypto.createHash('sha256').update(data).digest();
   const challenge = base64URLEncode(hash);
-  console.log("🔐 Final code challenge:", challenge);
+  console.log("🔐 Generated code challenge:", challenge);
   return challenge;
 }
 
