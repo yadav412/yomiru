@@ -48,10 +48,21 @@
             <path d="M6 6L18 18" stroke="white" stroke-width="3" stroke-linecap="round"/>
           </svg>
         </button>
-        <button class="tinder-btn check" id="check-btn" title="Like">
+        <button class="tinder-btn check" id="check-btn" title="Like & Add to Watchlist">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 6L9 17L4 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
+        </button>
+      </div>
+      
+      <div class="download-section">
+        <button class="download-btn" id="download-docs-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="7,10 12,15 17,10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="15" x2="12" y2="3" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Download Watchlist (<span id="docs-count">0</span>)</span>
         </button>
       </div>
     </div>
@@ -73,6 +84,10 @@
     // Track shown anime to prevent repeats
     let shownAnimeIds = new Set();
     let currentOffset = 0; // For pagination when fetching more trending anime
+    
+    // Document/Watchlist functionality
+    let watchlistAnime = [];
+    let watchlistIds = new Set();
     
     const cardsContainer = document.getElementById('anime-cards');
     let isLoading = true;
@@ -637,11 +652,14 @@
       shownAnimeIds.add(currentAnime.id);
       console.log(`✅ Added anime ID ${currentAnime.id} to shown list. Total shown: ${shownAnimeIds.size}`);
       
-      // If user liked the anime, add to likes and update recommendations
+      // If user liked the anime, add to likes AND add to watchlist
       if (direction === 'right') {
         userLikes.push(currentAnime);
         console.log('💖 Added to likes:', currentAnime.title);
         console.log('Total likes:', userLikes.length);
+        
+        // Automatically add to watchlist when user likes
+        addToWatchlist(currentAnime, false); // false = don't show notification since we're swiping
         
         // Refresh recommendations every 2 likes to get new similar anime
         if (userLikes.length % 2 === 0) {
@@ -912,8 +930,201 @@
       }
     }
     
+    // Document/Watchlist functions
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => notification.classList.add('show'), 100);
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+      }, 3000);
+    }
+    
+    function addToWatchlist(anime = null, showNotif = true) {
+      const targetAnime = anime || displayQueue[current];
+      if (!targetAnime) {
+        if (showNotif) showNotification('No anime selected!', 'error');
+        return;
+      }
+      
+      // Check if already in watchlist
+      if (watchlistIds.has(targetAnime.id)) {
+        if (showNotif) showNotification(`${targetAnime.title} is already in your watchlist!`, 'error');
+        return;
+      }
+      
+      // Add to watchlist
+      watchlistAnime.push({
+        id: targetAnime.id,
+        title: targetAnime.title,
+        synopsis: targetAnime.synopsis || 'No synopsis available.',
+        source: targetAnime.source,
+        addedDate: new Date().toLocaleDateString(),
+        image: targetAnime.main_picture?.large || targetAnime.main_picture?.medium || 'N/A'
+      });
+      
+      watchlistIds.add(targetAnime.id);
+      updateWatchlistCounter();
+      
+      if (showNotif) {
+        showNotification(`Added "${targetAnime.title}" to watchlist!`, 'success');
+      }
+      
+      console.log('📝 Added to watchlist:', targetAnime.title);
+      console.log('📊 Total watchlist items:', watchlistAnime.length);
+    }
+    
+    function updateWatchlistCounter() {
+      const counterElement = document.getElementById('docs-count');
+      counterElement.textContent = watchlistAnime.length;
+      
+      // Add pulse animation when counter updates
+      counterElement.style.transform = 'scale(1.3)';
+      counterElement.style.color = '#4ecdc4';
+      setTimeout(() => {
+        counterElement.style.transform = 'scale(1)';
+        counterElement.style.color = 'white';
+      }, 200);
+      
+      // Enable/disable download button based on watchlist content
+      const downloadBtn = document.getElementById('download-docs-btn');
+      if (watchlistAnime.length === 0) {
+        downloadBtn.disabled = true;
+        downloadBtn.style.opacity = '0.5';
+      } else {
+        downloadBtn.disabled = false;
+        downloadBtn.style.opacity = '1';
+      }
+    }
+    
+    async function formatWatchlistWithGemini(animeList) {
+      try {
+        console.log('Formatting watchlist with Gemini...');
+        
+        // Prepare anime data for Gemini
+        const animeData = animeList.map(anime => ({
+          title: anime.title,
+          synopsis: anime.synopsis,
+          source: anime.source,
+          addedDate: anime.addedDate
+        }));
+        
+        const prompt = `Please format this anime watchlist into a beautiful, well-organized document. Make it professional and easy to read:
+
+${JSON.stringify(animeData, null, 2)}
+
+Format it as:
+1. A nice header/title
+2. A brief introduction 
+3. Organized list of anime with descriptions
+4. Maybe add some emojis and formatting to make it visually appealing
+5. Include the date each anime was added
+6. Add a footer with the total count
+
+Make it ready for saving as a text document.`;
+
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: prompt
+              }]
+            }]
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.candidates[0].content.parts[0].text;
+        } else {
+          console.warn('Gemini API failed, using fallback formatting');
+          return formatWatchlistFallback(animeList);
+        }
+      } catch (error) {
+        console.error('Error with Gemini formatting:', error);
+        return formatWatchlistFallback(animeList);
+      }
+    }
+    
+    function formatWatchlistFallback(animeList) {
+      let document = `🎌 MY ANIME WATCHLIST 🎌\n`;
+      document += `═══════════════════════════════════════\n\n`;
+      document += `📅 Generated on: ${new Date().toLocaleDateString()}\n`;
+      document += `📊 Total Anime: ${animeList.length}\n\n`;
+      
+      if (animeList.length === 0) {
+        document += `Your watchlist is empty! Start adding anime you're interested in.\n\n`;
+      } else {
+        document += `✨ RECOMMENDED FOR YOU ✨\n\n`;
+        
+        animeList.forEach((anime, index) => {
+          document += `${index + 1}. 📺 ${anime.title}\n`;
+          document += `   📝 ${anime.synopsis}\n`;
+          document += `   🏷️  Source: ${anime.source === 'similar' ? 'Based on your likes' : 'Trending'}\n`;
+          document += `   📅 Added: ${anime.addedDate}\n`;
+          if (anime.image && anime.image !== 'N/A') {
+            document += `   🖼️  Image: ${anime.image}\n`;
+          }
+          document += `\n`;
+        });
+      }
+      
+      document += `═══════════════════════════════════════\n`;
+      document += `🌟 Happy watching! Generated by Yomiru 🌟\n`;
+      document += `🔗 Visit us at: ${window.location.origin}\n`;
+      
+      return document;
+    }
+    
+    async function downloadWatchlist() {
+      if (watchlistAnime.length === 0) {
+        showNotification('Your watchlist is empty!', 'error');
+        return;
+      }
+      
+      try {
+        showNotification('Generating your watchlist document...', 'success');
+        
+        // Try to format with Gemini, fallback to basic formatting
+        const formattedDocument = await formatWatchlistWithGemini(watchlistAnime);
+        
+        // Create and download the file
+        const blob = new Blob([formattedDocument], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Yomiru-Watchlist-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        showNotification(`Downloaded watchlist with ${watchlistAnime.length} anime!`, 'success');
+        
+      } catch (error) {
+        console.error('Error downloading watchlist:', error);
+        showNotification('Error creating download. Please try again.', 'error');
+      }
+    }
+    
+    // Event listeners
     document.getElementById('cross-btn').addEventListener('click', () => swipeCard('left'));
     document.getElementById('check-btn').addEventListener('click', () => swipeCard('right'));
+    document.getElementById('download-docs-btn').addEventListener('click', downloadWatchlist);
+    
+    // Initialize watchlist counter
+    updateWatchlistCounter();
     
     initializeRecommendations();
   </script>
