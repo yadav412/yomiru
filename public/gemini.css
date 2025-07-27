@@ -18,7 +18,7 @@ body {
     padding: 20px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid #ff8c00;
+    border-bottom: 1px solid #ff0000;
 }
 
 .chat-header .header-info {
@@ -31,9 +31,9 @@ body {
     height: 35px;
     width: 35px;
     padding: 6px;
-    fill: #5350C4;
+    fill: #eaeaea;
     flex-shrink: 0;
-    background: #1a1a1a;
+    background: #676767;
     border-radius: 50%;
 }
 
@@ -105,12 +105,12 @@ body {
 }
 
 .chat-body .bot-message .message-text {
-    background: #fa6712;
+    background: #e93a3aed;
     border-radius: 13px 13px 13px 3px;
 }
 
 .chat-body .user-message .message-text {
-    background: #ff4d4d;
+    background: #974dff;
     color: #1a1a1a;
     border-radius: 13px 13px 3px 13px;
     align-self: flex-end;
@@ -169,7 +169,7 @@ body {
     width: 100%;
     background: #1a1a1a;
     padding: 15px 22px 20px;
-    border-top: 1px solid #ff8c00;
+    border-top: 1px solid #ff0000;
 }
 
 .chat-footer .chat-form {
@@ -327,7 +327,7 @@ body.show-emoji-picker em-emoji-picker {
 }
 
 .logo-text {
-    color: #ff8c00;
+    color: #fd4343;
     font-size: 1.5rem;
     margin-left: 12px;
 }
@@ -342,7 +342,7 @@ body.show-emoji-picker em-emoji-picker {
 
 .bot-message {
     background: #2a2a2a;
-    border-left: 4px solid #ff8c00;
+    border-left: 4px solid #ff0000;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -358,7 +358,7 @@ body.show-emoji-picker em-emoji-picker {
 .chat-footer {
     background: #2e2e2e;
     padding: 15px;
-    border-top: 1px solid #ff8c00;
+    border-top: 1px solid #ff0400;
 }
 
 .message-input {
