@@ -1,3 +1,21 @@
+/* Reset default browser spacing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: #000; /* Or your desired background */
+  color: white;
+  font-family: sans-serif;
+}
+
+
 .carousel-ghibli-wrapper {
   position: relative;
   overflow: hidden;
@@ -85,14 +103,7 @@
   line-height: 1.5;
 }
 
-.carousel-ghibli-track {
-  display: flex;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  gap: 20px;
-  padding: 20px;
-  scrollbar-width: none;
-}
+
 .carousel-ghibli-track::-webkit-scrollbar {
   display: none;
 }
