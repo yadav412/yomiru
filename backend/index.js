@@ -91,16 +91,28 @@ app.get("/login", (req, res) => {
 
 // === 2. Callback handler ===
 app.get("/callback", async (req, res) => {
+  console.log("🔄 Callback endpoint hit");
+  console.log("Query params:", req.query);
+  console.log("Cookies:", req.cookies);
+  
   const code = req.query.code;
   const codeVerifier = req.cookies.code_verifier;
 
-  console.log("Client ID:", CLIENT_ID);
-  console.log("Redirect URI:", REDIRECT_URI);
-  console.log("Code Verifier:", codeVerifier);
-  console.log("Authorization Code:", code);
+  console.log("🔍 OAuth Callback Debug:");
+  console.log("CLIENT_ID:", CLIENT_ID ? "✓ Present" : "❌ Missing");
+  console.log("CLIENT_SECRET:", CLIENT_SECRET ? "✓ Present" : "❌ Missing");
+  console.log("REDIRECT_URI:", REDIRECT_URI || "❌ Missing");
+  console.log("Code Verifier:", codeVerifier ? "✓ Present" : "❌ Missing");
+  console.log("Authorization Code:", code ? "✓ Present" : "❌ Missing");
+  
   if (!codeVerifier) {
-    console.error("Missing code_verifier");
+    console.error("❌ Missing code_verifier cookie");
     return res.status(400).send("Missing code_verifier. Try logging in again.");
+  }
+  
+  if (!code) {
+    console.error("❌ Missing authorization code");
+    return res.status(400).send("Missing authorization code from MyAnimeList.");
   }
 
   try {
@@ -108,6 +120,10 @@ app.get("/callback", async (req, res) => {
 
     // Use same redirect URI logic as login route
     const redirectUri = getRedirectUri(req);
+    
+    console.log("🚀 About to exchange code for token:");
+    console.log("Token endpoint:", "https://myanimelist.net/v1/oauth2/token");
+    console.log("Redirect URI being used:", redirectUri);
 
     const tokenRes = await axios.post(
       "https://myanimelist.net/v1/oauth2/token",
@@ -127,10 +143,16 @@ app.get("/callback", async (req, res) => {
     );
 
     access_token = tokenRes.data.access_token;
+    console.log("✅ Token exchange successful!");
+    console.log("Access token received:", access_token ? "✓ Yes" : "❌ No");
+    
     // Redirect to the appropriate domain based on environment
     const frontendUrl = process.env.FRONTEND_URL || req.get('host');
     const redirectProtocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-    res.redirect(`${redirectProtocol}://${frontendUrl}/index.html`);
+    const finalRedirectUrl = `${redirectProtocol}://${frontendUrl}/index.html`;
+    
+    console.log("🔄 Redirecting to:", finalRedirectUrl);
+    res.redirect(finalRedirectUrl);
   } catch (err) {
     console.error("❌ Token exchange failed:", {
       error: err.response?.data || err.message,
