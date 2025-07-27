@@ -75,11 +75,11 @@ app.get("/login", (req, res) => {
   console.log("  Code verifier length:", codeVerifier.length);
   console.log("  Generated code_challenge:", codeChallenge);
   // Set as cookie for use in /callback
-  res.cookie("code_verifier", codeVerifier, {
-    httpOnly: true,
-    secure: true, // Required for HTTPS
-    sameSite: 'lax', // Allow cross-site requests for OAuth
-    maxAge: 300000 // 5 minutes
+  res.cookie('code_verifier', code_verifier, {
+  maxAge: 600000,
+  httpOnly: true,
+  secure: true, // important for HTTPS
+  sameSite: 'None' // allow cross-site cookies for OAuth
   });
 
   // Use environment variable redirect URI
