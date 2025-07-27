@@ -365,7 +365,7 @@ body.tracemoe {
   flex-wrap: wrap; /* keeps it responsive on smaller screens */
   gap: 20px;
   max-width: 1200px;
-  background-color: rgba(0, 0, 0, 0.404);
+  background-color: rgba(233, 9, 9, 0);
 }
 
 .dev {
@@ -375,6 +375,8 @@ body.tracemoe {
   text-align: center;
   color: white;
   font-family: 'Poppins', sans-serif;
+  background-color: #cfa4a46d;
+  border-radius: 50px;
 }
 
 .dev img {
