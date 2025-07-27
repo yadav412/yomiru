@@ -180,6 +180,15 @@ main {
   padding-right: 100px;
 
 }
+.copyright {
+    text-align: center;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 50px;
+    padding: 20px;
+    font-weight: 400;
+    background-color: transparent;
+} 
 
 
 /* CSS FOR GHIBLI PAGE */
@@ -259,13 +268,4 @@ main {
   background-color: #c52d2d;
 }
 
-.copyright {
-    text-align: center;
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-top: 50px;
-    padding: 20px;
-    font-weight: 400;
-    background-color: transparent;
-} */
 
