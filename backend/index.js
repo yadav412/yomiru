@@ -150,14 +150,16 @@ app.get("/callback", async (req, res) => {
       grant_type: "authorization_code",
       code,
       client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET, // MyAnimeList requires both client_secret and code_verifier for PKCE
       redirect_uri: redirectUri,
-      code_verifier: codeVerifier // Using PKCE code verifier instead of client_secret
+      code_verifier: codeVerifier
     };
     
-    console.log("🚀 Token request data being sent (WITH PKCE):");
+    console.log("🚀 Token request data being sent (HYBRID PKCE + CLIENT_SECRET):");
     console.log("  grant_type:", tokenRequestData.grant_type);
     console.log("  code:", tokenRequestData.code ? `${tokenRequestData.code.substring(0, 20)}...` : "❌ Missing");
     console.log("  client_id:", tokenRequestData.client_id ? "✓ Present" : "❌ Missing");
+    console.log("  client_secret:", tokenRequestData.client_secret ? "✓ Present" : "❌ Missing");
     console.log("  redirect_uri:", tokenRequestData.redirect_uri);
     console.log("  code_verifier:", tokenRequestData.code_verifier ? "✓ Present" : "❌ Missing");
     
@@ -189,11 +191,12 @@ app.get("/callback", async (req, res) => {
     console.log("🔄 Redirecting to:", finalRedirectUrl);
     res.redirect(finalRedirectUrl);
   } catch (err) {
-    console.error("❌ Token exchange failed (WITH PKCE):", {
+    console.error("❌ Token exchange failed (HYBRID PKCE + CLIENT_SECRET):", {
       error: err.response?.data || err.message,
       status: err.response?.status,
       statusText: err.response?.statusText,
       clientId: CLIENT_ID ? "✓ Set" : "✗ Missing",
+      clientSecret: CLIENT_SECRET ? "✓ Set" : "✗ Missing",
       codeVerifier: codeVerifier ? "✓ Set" : "✗ Missing",
       redirectUri: redirectUri
     });
