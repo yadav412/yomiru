@@ -76,24 +76,21 @@
   <footer>
       <p class="copyright">© 2025 Yomiru. All rights reserved.</p>
   </footer>
+  <script>
+  let lastScrollY = window.scrollY;
+  const nav = document.querySelector('.bar');
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > lastScrollY) {
+      // Scrolling down
+      nav.classList.add('hide');
+    } else {
+      // Scrolling up
+      nav.classList.remove('hide');
+    }
+    lastScrollY = window.scrollY;
+  });
+</script>
 </body>
 </html>
 
-
-<script>
-    let prevScrollPos = window.pageYOffset;
-
-    window.onscroll = function () {
-      const currentScrollPos = window.pageYOffset;
-      const navbar = document.getElementById("bar");
-
-      if (prevScrollPos > currentScrollPos) {
-        navbar.style.top = "0";
-      } else {
-        navbar.style.top = "-80px";
-      }
-
-      prevScrollPos = currentScrollPos;
-    };
-
-  </script>

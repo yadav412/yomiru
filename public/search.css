@@ -498,3 +498,16 @@ nav button:hover, nav input:hover, nav a:hover {
     font-weight: 400;
     background-color: transparent;
 }
+
+.bar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #12121200;
+  z-index: 1000;
+  transition: top 0.3s ease-in-out;
+}
+
+.bar.hide {
+  top: -100px; 
+}
