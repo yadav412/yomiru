@@ -301,4 +301,13 @@ h1 {
   color: #c05b5e;
   text-align: center;
   margin-top: 20px;
+
 }
+
+
+.search-button.hide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+

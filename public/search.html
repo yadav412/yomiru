@@ -76,21 +76,24 @@
   <footer>
       <p class="copyright">© 2025 Yomiru. All rights reserved.</p>
   </footer>
-  <script>
+
+<script>
   let lastScrollY = window.scrollY;
   const nav = document.querySelector('.bar');
+  const searchBtn = document.querySelector('.search-button');
 
   window.addEventListener('scroll', () => {
     if (window.scrollY > lastScrollY) {
-      // Scrolling down
       nav.classList.add('hide');
+      searchBtn.classList.add('hide');
     } else {
-      // Scrolling up
       nav.classList.remove('hide');
+      searchBtn.classList.remove('hide');
     }
     lastScrollY = window.scrollY;
   });
 </script>
+
 </body>
 </html>
 
