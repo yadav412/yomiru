@@ -4,10 +4,17 @@ const cors = require("cors");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const multer = require("multer");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Use Render's PORT or fallback to 3000
+
+// Configure multer for file uploads (memory storage for TraceMoe)
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
@@ -276,6 +283,33 @@ app.post('/api/generate', async (req, res) => {
   } catch (error) {
     console.error('Gemini API Error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to generate content' });
+  }
+});
+
+// TraceMoe API proxy for image uploads
+app.post('/tracemoe/search', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    const FormData = require('form-data');
+    const formData = new FormData();
+    formData.append('image', req.file.buffer, {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
+    });
+
+    const response = await axios.post('https://api.trace.moe/search', formData, {
+      headers: {
+        ...formData.getHeaders(),
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('TraceMoe API Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to search anime', detail: error.message });
   }
 });
 

@@ -141,3 +141,115 @@ body.tracemoe {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(240, 0, 0, 0.4);
 }
+
+/* Download section styling */
+.download-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border: 2px solid #ea6666;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #ea6666, #a24b4b);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+  text-decoration: none;
+  min-width: 200px;
+  max-width: 300px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.download-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 27, 27, 0.4);
+  background: linear-gradient(135deg, #d85a5a, #936b4c);
+}
+
+.download-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(243, 104, 80, 0.991);
+}
+
+/* Disabled state for download button */
+.download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #999, #888);
+  border-color: #999;
+}
+
+.download-btn:disabled:hover {
+  transform: none;
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #999, #888);
+}
+
+/* Ensure button text is properly styled */
+.download-btn span {
+  white-space: nowrap;
+  font-size: inherit;
+  color: inherit;
+  line-height: 1;
+}
+
+/* Counter styling within button */
+.download-btn #tracemoe-count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-left: 2px;
+}
+
+/* Badge for document count - Global styling */
+span#tracemoe-count {
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+/* Success notification */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  font-weight: 600;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification.success {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+}
+
+.notification.error {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+}
