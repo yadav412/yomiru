@@ -296,3 +296,9 @@ main {
   transform: scale(1.1);
 }
 
+h1 {
+  font-size: 2.5rem;
+  color: #c05b5e;
+  text-align: center;
+  margin-top: 20px;
+}
