@@ -376,7 +376,8 @@ body.tracemoe {
   background-color: #cfa4a46d;
   border-radius: 50px;
    width:300px ;
-   height: 600px;
+   height: 700px;
+
   
 }
 
@@ -396,4 +397,35 @@ body.tracemoe {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   max-width: 800px;
+}
+
+.link-yadav 
+  {
+  padding: 12px 25px;
+    border-radius: 25px;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    background: linear-gradient(45deg, #0197f5, #ff00aa, #ff0000);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+
+  }
+
+.link-yadav:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(240, 0, 0, 0.4);
+  }
+
+a{
+  color: #0b0503;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.bio{
+  padding-left: 20px;
+  padding-right: 20px;
 }
