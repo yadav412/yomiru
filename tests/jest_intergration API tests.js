@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: './backend/.env' });
 
 const axios = require('axios');
 
@@ -44,7 +44,7 @@ describe('Integration Tests', () => {
     };
 
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
       prompt,
       { headers: { 'Content-Type': 'application/json' } }
     );
@@ -56,14 +56,7 @@ describe('Integration Tests', () => {
 
 
 
-// backup tests 
-
-
-require('dotenv').config();
-const axios = require('axios');
-
-// Load keys from environment variables
-//called earlier in the file
+// backup tests - Additional test scenarios
 
 // Helper delay to avoid hitting rate limits
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -148,7 +141,7 @@ describe(' API Integration Tests', () => {
 
     test('Returns a valid answer from Gemini', async () => {
       const res = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
         validPrompt,
         { headers: { 'Content-Type': 'application/json' } }
       );
@@ -162,7 +155,7 @@ describe(' API Integration Tests', () => {
     test('Handles bad API key gracefully', async () => {
       try {
         await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=INVALID_KEY`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=INVALID_KEY`,
           validPrompt,
           { headers: { 'Content-Type': 'application/json' } }
         );
@@ -175,7 +168,7 @@ describe(' API Integration Tests', () => {
     test('Handles empty prompt input', async () => {
       try {
         await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
           {},
           { headers: { 'Content-Type': 'application/json' } }
         );

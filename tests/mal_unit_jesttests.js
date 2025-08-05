@@ -1,4 +1,14 @@
-import { searchAnime } from './malAPI';
+// Mock search function for MAL API testing
+const searchAnime = async (query) => {
+  const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=5`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch anime data');
+  }
+  
+  const data = await response.json();
+  return data.data || [];
+};
 
 global.fetch = jest.fn();
 

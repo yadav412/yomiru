@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - Node.js API 1
+name: CI/CD Pipeline - Anime Streaming Platform
 
 on:
   push:
@@ -25,7 +25,25 @@ jobs:
     - name: Run Linter (or fallback)
       run: npm run lint || echo "Linting skipped"
 
-    - name: Run Trace Moe Tests
+    - name: Run Unit Tests
+      env:
+        MAL_CLIENT_ID: ${{ secrets.MAL_CLIENT_ID }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: npm run test:unit
+
+    - name: Run Integration Tests
+      env:
+        MAL_CLIENT_ID: ${{ secrets.MAL_CLIENT_ID }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: npm run test:integration
+
+    - name: Run API Tests
+      run: npm run test:api
+
+    - name: Run All Tests Combined
+      env:
+        MAL_CLIENT_ID: ${{ secrets.MAL_CLIENT_ID }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: npm test
 
   deploy:

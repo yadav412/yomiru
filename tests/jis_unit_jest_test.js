@@ -1,4 +1,14 @@
-import { searchAnime } from './jikan';
+// Mock search function for Jikan API testing  
+const searchAnime = async (query, limit = 5) => {
+  const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=${limit}`);
+  
+  if (!response.ok) {
+    throw new Error(`Jikan API request failed with status ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data || [];
+};
 
 global.fetch = jest.fn(); // mock fetch
 

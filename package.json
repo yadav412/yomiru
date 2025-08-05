@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node backend/index.js",
     "dev": "node backend/index.js",
-    "test": "cd backend && npm test"
+    "test": "npm run test:unit && npm run test:integration && npm run test:api",
+    "test:unit": "jest tests/gemini.test.js tests/mal_unit_jesttests.js tests/jis_unit_jest_test.js",
+    "test:integration": "jest tests/jest_intergration\\ API\\ tests.js",
+    "test:api": "jest tests/tracemoe-test.js",
+    "test:automated": "node run-tests.js",
+    "test:coverage": "jest --coverage"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -21,6 +26,13 @@
     "node-fetch": "^2.7.0",
     "oauth4webapi": "^3.6.0",
     "qs": "^6.14.0"
+  },
+  "devDependencies": {
+    "jest": "^30.0.4",
+    "form-data": "^4.0.0",
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "babel-jest": "^30.0.4"
   },
   "keywords": [
     "anime",
