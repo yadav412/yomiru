@@ -9,13 +9,10 @@ console.log('=' .repeat(60));
 // Check if required files exist
 const requiredFiles = [
   'tests/gemini.test.js',
-  'tests/tracemoe-test.js', 
+  'tests/tracemoe-test.js',
   'tests/jest_intergration API tests.js',
-  'tests/mal_unit_jesttests.js',
-  'tests/jis_unit_jest_test.js'
-];
-
-console.log('📁 Checking test files...');
+  'tests/mal_unit_jesttests.js'
+];console.log('📁 Checking test files...');
 requiredFiles.forEach(file => {
   if (fs.existsSync(file)) {
     console.log(`✅ ${file} - Found`);
@@ -29,7 +26,7 @@ console.log('=' .repeat(60));
 
 const testSuites = [
   {
-    name: 'Unit Tests (Gemini, MAL, Jikan APIs)',
+    name: 'Unit Tests (Gemini, MAL APIs)',
     command: 'npm run test:unit',
     description: 'Testing individual API components'
   },

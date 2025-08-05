@@ -7,7 +7,7 @@
     "start": "node backend/index.js",
     "dev": "node backend/index.js",
     "test": "npm run test:unit && npm run test:integration && npm run test:api",
-    "test:unit": "jest tests/gemini.test.js tests/mal_unit_jesttests.js tests/jis_unit_jest_test.js tests/gemini-security.test.js",
+    "test:unit": "jest tests/gemini.test.js tests/mal_unit_jesttests.js tests/gemini-security.test.js",
     "test:integration": "jest tests/jest_intergration\\ API\\ tests.js",
     "test:api": "jest tests/tracemoe-test.js",
     "test:automated": "node run-tests.js",

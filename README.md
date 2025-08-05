@@ -24,7 +24,6 @@ npm run test:api         # API tests
 - **Gemini AI API** - Chatbot functionality
 - **Trace.moe API** - Anime image recognition  
 - **MyAnimeList (MAL) API** - Anime database integration
-- **Jikan API** - Alternative anime database
 
 Tests run automatically on GitHub Actions for every push and pull request.
 

@@ -19,7 +19,6 @@ npm run test:coverage    # Generate coverage report
 ### Features Tested
 - **Gemini AI API** - Chatbot functionality
 - **MyAnimeList (MAL) API** - Anime database search
-- **Jikan API** - Alternative anime database
 - **Trace.moe API** - Anime image recognition
 
 ### Environment Setup
