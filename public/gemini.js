@@ -8,9 +8,9 @@ const fileCancelButton = document.querySelector("#file-cancel");
 const chatbotToggler = document.querySelector("#chatbot-toggler");
 const closeChatbot = document.querySelector("#close-chatbot");
 
-// API setup
-const API_KEY = "AIzaSyCN-7ma_q8PQf_bPAKYl855aKdHvBKZiLg";
-const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+// API setup - Using secure backend proxy
+const BACKEND_URL = "https://final-project-10-streams.onrender.com";
+const API_URL = `${BACKEND_URL}/api/generate`;
 
 // Custom system prompt configuration
 const SYSTEM_PROMPT = {
@@ -51,20 +51,22 @@ const generateBotResponse = async (incomingMessageDiv) => {
         parts: [{ text: userData.message }, ...(userData.file.data ? [{ inline_data: userData.file }] : [])]
     });
 
-    // API request options
+    // API request options for backend proxy
     const requestOptions = {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({
             contents: chatHistory
         })
     }
 
     try {
-        // Fetch bot response from API
+        // Fetch bot response from backend API proxy
         const response = await fetch(API_URL, requestOptions);
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error.message);
+        if (!response.ok) throw new Error(data.error || 'Failed to generate response');
 
         // Extract and display bot's response text
         const apiResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*/g, "$1").trim();
@@ -76,10 +78,20 @@ const generateBotResponse = async (incomingMessageDiv) => {
             parts: [{ text: apiResponseText }] // Store actual response for context
         });
     } catch (error) {
-        // Handle error in API response
-        console.log(error);
-        messageElement.innerText = error.message;
-        messageElement.style.color = "#ff0000";
+        // Handle error in API response with user-friendly message
+        console.log('Backend API Error:', error);
+        let errorMessage = "I'm having trouble connecting to the AI service right now. ";
+        
+        if (error.message.includes('Failed to generate content')) {
+            errorMessage += "The AI backend is currently being updated. Please try again in a few moments.";
+        } else if (error.message.includes('fetch')) {
+            errorMessage += "Please check your internet connection and try again.";
+        } else {
+            errorMessage += "Please try rephrasing your question or try again later.";
+        }
+        
+        messageElement.innerText = errorMessage;
+        messageElement.style.color = "#ff6b6b"; // Softer red color
     } finally {
         // Reset user's file data, removing thinking indicator and scroll chat to bottom
         userData.file = { data: null, mime_type: null };

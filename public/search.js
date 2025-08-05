@@ -82,7 +82,6 @@ async function loadTrendingAnime() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log('Trending anime response:', data); // Debug log
         
         const animeList = data.anime.map(item => ({
             title: item.title,
