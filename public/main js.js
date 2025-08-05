@@ -1,4 +1,5 @@
-// Detect environment and set API base URL accordingly
+// ========== API Base URL ==========
+// Sets base URL depending on environment (localhost vs production)
 const API_BASE = window.location.hostname === 'localhost' 
   ? "http://localhost:3000" 
   : "https://final-project-10-streams.onrender.com";
@@ -7,7 +8,12 @@ const API_BASE = window.location.hostname === 'localhost'
 let tracemoeWatchlist = [];
 let tracemoeWatchlistIds = new Set();
 
-// Show notification function
+// ========== Show notification on screen ==========
+/**
+ * Shows a floating notification to the user
+ * Input: message (string), type (success or error)
+ * Output: A notification element shown briefly
+ */
 function showNotification(message, type = 'success') {
   const notification = document.createElement('div');
   notification.className = `notification ${type}`;
@@ -24,7 +30,12 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
-// Add anime to tracemoe watchlist
+// ========== Add anime to TraceMoe watchlist ==========
+/**
+ * Adds an anime object to the watchlist if not already added
+ * Input: anime (object)
+ * Output: Updates the watchlist and shows a notification
+ */
 function addToTracemoeWatchlist(anime) {
   if (!anime) return;
   
@@ -54,7 +65,11 @@ function addToTracemoeWatchlist(anime) {
   console.log('📊 Total tracemoe watchlist items:', tracemoeWatchlist.length);
 }
 
-// Update watchlist counter
+// ========== Update watchlist counter ==========
+/**
+ * Updates the watchlist counter element on the page
+ * Also toggles download button state
+ */
 function updateTracemoeCounter() {
   const counterElement = document.getElementById('tracemoe-count');
   if (counterElement) {
@@ -82,7 +97,12 @@ function updateTracemoeCounter() {
   }
 }
 
-// Format tracemoe watchlist for download
+// ========== Format watchlist for download ==========
+/**
+ * Converts anime list to a formatted plain text document
+ * Input: animeList (array)
+ * Output: String containing formatted watchlist
+ */
 function formatTracemoeWatchlist(animeList) {
   let document = `🔍 TRACEMOE WATCHLIST 🔍\n`;
   document += `═══════════════════════════════════════\n\n`;
@@ -117,7 +137,11 @@ function formatTracemoeWatchlist(animeList) {
   return document;
 }
 
-// Download tracemoe watchlist
+// ========== Download watchlist ==========
+/**
+ * Creates a .txt file of the watchlist and downloads it
+ * Output: Triggers file download in browser
+ */
 async function downloadTracemoeWatchlist() {
   if (tracemoeWatchlist.length === 0) {
     showNotification('Your TraceMoe watchlist is empty!', 'error');
@@ -148,10 +172,12 @@ async function downloadTracemoeWatchlist() {
   }
 }
 
-function loginWithMAL() {
-  window.location.href = `${API_BASE}/login`;
-}
-
+// ========== Get anime info by title ==========
+/**
+ * Gets anime synopsis from title
+ * Input: title (string)
+ * Output: synopsis (string)
+ */
 async function getAnimeInfo(title) {
   const response = await fetch(`${API_BASE}/mal/anime-info?title=${encodeURIComponent(title)}`);
 
@@ -166,6 +192,11 @@ async function getAnimeInfo(title) {
   return anime.synopsis;
 }
 
+// ========== Recommend anime ==========
+/**
+ * Fetches anime data by title and suggests related anime
+ * Output: Displays info and recommendations on page
+ */
 async function getAnimeDetailsThenSuggest() {
   const title = document.getElementById('animeSuggest').value;
 
@@ -199,6 +230,7 @@ async function getAnimeDetailsThenSuggest() {
   }
 }
 
+// ========== Clean title (remove brackets or file extensions) ==========
 function cleanTitle(title) {
   // Remove bracketed and parenthesized content (e.g., [ReinForce], (BDRip))
   let cleanedTitle = title.replace(/\[.*?\]/g, "").replace(/\(.*?\)/g, "");
@@ -208,12 +240,18 @@ function cleanTitle(title) {
   return cleanedTitle.trim();
 }
 
+// ========== Get anime info by MAL ID ==========
 async function getAnimeInfoById(malId) {
   const response = await fetch(`${API_BASE}/mal/anime-by-id/${malId}`);
   const data = await response.json();
   return data.synopsis;
 }
 
+// ========== TraceMoe image search ==========
+/**
+ * Uses image from file input to identify anime using TraceMoe API
+ * Output: Displays result + adds to watchlist
+ */
 async function testTraceMoe() {
   const fileInput = document.getElementById('tracemoein');
   const file = fileInput.files[0];
@@ -300,6 +338,12 @@ async function testTraceMoe() {
   }
 }
 
+// ========== Perform anime search ==========
+/**
+ * Searches for anime using input term
+ * Input: searchTerm (string)
+ * Output: Displays results or error
+ */
 async function performSearch(searchTerm) {
   if (!searchTerm) return;
 
@@ -317,12 +361,8 @@ async function performSearch(searchTerm) {
   }
 }
 
+// ========== Setup event listeners on page load =========
 document.addEventListener("DOMContentLoaded", () => {
-  const malLoginButton = document.getElementById("malLoginButton");
-  if (malLoginButton) {
-    malLoginButton.addEventListener("click", loginWithMAL);
-  }
-
   const animeSuggestButton = document.getElementById("animeSuggestButton");
   if (animeSuggestButton) {
     animeSuggestButton.addEventListener("click", getAnimeDetailsThenSuggest);

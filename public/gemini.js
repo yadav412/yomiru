@@ -1,3 +1,4 @@
+// Select all required DOM elements
 const chatBody = document.querySelector(".chat-body");
 const messageInput = document.querySelector(".message-input");
 const sendMessageButton = document.querySelector("#send-message");
@@ -19,6 +20,7 @@ const SYSTEM_PROMPT = {
     }]
 };
 
+// User data storage
 const userData = {
     message: null,
     file: {
@@ -39,7 +41,7 @@ const createMessageElement = (content, ...classes) => {
     return div;
 }
 
-// Generate bot response using API
+// Generate bot response using API from a user message
 const generateBotResponse = async (incomingMessageDiv) => {
     const messageElement = incomingMessageDiv.querySelector(".message-text");
 
@@ -86,7 +88,7 @@ const generateBotResponse = async (incomingMessageDiv) => {
     }
 }
 
-// Handle outgoing user messages
+// Handles user's submitted message
 const handleOutgoingMessage = (e) => {
     e.preventDefault();
 
@@ -191,6 +193,7 @@ const picker = new EmojiMart.Picker({
 
 document.querySelector(".chat-form").appendChild(picker);
 
+// Event Listeners for sending messages, uploading files, toggling UI
 sendMessageButton.addEventListener("click", (e) => handleOutgoingMessage(e));
 document.querySelector("#file-upload").addEventListener("click", () => fileInput.click());
 chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));

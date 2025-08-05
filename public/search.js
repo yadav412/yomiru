@@ -1,4 +1,6 @@
-// Search functionality
+// ========== SEARCH AND TRENDING ANIME FUNCTIONALITY ==========
+
+// Keep track of search timeouts and current search term
 let searchTimeout;
 let currentSearchTerm = '';
 // Detect environment and set API base URL accordingly
@@ -6,6 +8,7 @@ const API_BASE = window.location.hostname === 'localhost'
   ? "http://localhost:3000" 
   : "https://final-project-10-streams.onrender.com";
 
+// When the page loads
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.querySelector('.clear-btn');
@@ -39,6 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTrendingAnime();
 });
 
+/**
+ * Search anime by title using the backend API
+ */
 async function performSearch(searchTerm) {
   if (!searchTerm || searchTerm === currentSearchTerm) return;
   currentSearchTerm = searchTerm;
@@ -65,7 +71,9 @@ async function performSearch(searchTerm) {
 }
 
 
-
+/**
+ * Load trending anime from the backend
+ */
 async function loadTrendingAnime() {
     console.log('Loading trending anime...');
     try {
@@ -76,7 +84,6 @@ async function loadTrendingAnime() {
         const data = await response.json();
         console.log('Trending anime response:', data); // Debug log
         
-        // Fix: Backend returns { anime: [...] }, not { data: [...] }
         const animeList = data.anime.map(item => ({
             title: item.title,
             image: item.main_picture ? item.main_picture.large || item.main_picture.medium : 'images/placeholder.jpg',
@@ -92,12 +99,16 @@ async function loadTrendingAnime() {
     }
 }
 
+// ========== View Controls ==========
+
+// Show search results section
 function showSearchResults() {
     document.getElementById('search-results').style.display = 'block';
     document.getElementById('trending-section').style.display = 'none';
     document.getElementById('no-results').style.display = 'none';
 }
 
+// Show trending anime section
 function showTrending() {
     document.getElementById('search-results').style.display = 'none';
     document.getElementById('trending-section').style.display = 'block';
@@ -105,12 +116,14 @@ function showTrending() {
     currentSearchTerm = '';
 }
 
+// Show "no results" message
 function showNoResults() {
     document.getElementById('search-results').style.display = 'none';
     document.getElementById('trending-section').style.display = 'none';
     document.getElementById('no-results').style.display = 'block';
 }
 
+// Show loading animation (placeholder cards)
 function showLoadingCards(gridId) {
     const grid = document.getElementById(gridId);
     grid.innerHTML = '';
@@ -127,11 +140,15 @@ function showLoadingCards(gridId) {
     }
 }
 
+// ========== Result Rendering ==========
+
+// Show message when no search results found
 function displayNoResults(msg) {
   const box = document.getElementById('search-results');
   box.innerHTML = `<div class="no-results">${msg}</div>`;
 }
 
+// Display search results in list form
 function displaySearchResults(results) {
   const resultsEl = document.getElementById('search-results');
   if (!results || results.length === 0) {
@@ -154,7 +171,7 @@ function displaySearchResults(results) {
   });
 }
 
-
+// Display trending anime in card format
 function displayTrendingAnime(animeList) {
     const grid = document.getElementById('trending-grid');
     grid.innerHTML = '';
@@ -165,6 +182,7 @@ function displayTrendingAnime(animeList) {
     });
 }
 
+// Create anime card element
 function createAnimeCard(anime) {
     const card = document.createElement('div');
     card.className = 'anime-card';
@@ -194,12 +212,13 @@ function createAnimeCard(anime) {
     return card;
 }
 
+// Handle clicking on anime card
 function openAnimeDetails(anime) {
     console.log('Opening details for:', anime.title);
-    // TODO: Implement anime details page or modal
     alert(`Opening details for: ${anime.title}`);
 }
 
+// Clear the current search and reset to trending view
 function clearSearch() {
     document.getElementById('search-input').value = '';
     document.querySelector('.clear-btn').style.display = 'none';
@@ -207,11 +226,12 @@ function clearSearch() {
     document.getElementById('search-input').focus();
 }
 
+// Navigate to previous page
 function goBack() {
     window.history.back();
 }
 
-// Mock data generators (replace with actual API calls)
+// ========== Mock Data (for testing without API) ==========
 function generateMockSearchResults(searchTerm) {
     const mockAnime = [
         {

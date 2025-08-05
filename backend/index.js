@@ -1,3 +1,4 @@
+// Import requires modules and configure environment
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -16,6 +17,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
+// MyAnimeList API credentials from .env
 const CLIENT_ID = process.env.MAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
@@ -59,7 +61,12 @@ app.get('/', (req, res) => {
 
 
 
-// === 3. Get anime info ===
+// ========== GET Anime Info (by title) ==========
+/**
+ * Retrieves anime data by title using MyAnimeList API.
+ * Input: title (string)
+ * Output: JSON of anime info including start/end date and synopsis
+ */
 app.get("/mal/anime-info", async (req, res) => {
   const title = req.query.title;
   try {
@@ -81,7 +88,12 @@ app.get("/mal/anime-info", async (req, res) => {
   }
 });
 
-// === NEW: Get anime info by ID ===
+// ========== GET Anime Info (by ID) ==========
+/**
+ * Retrieves anime details by ID using MyAnimeList API.
+ * Input: anime ID from URL parameter
+ * Output: JSON with anime title, dates, and synopsis
+ */
 app.get("/mal/anime-by-id/:id", async (req, res) => {
   const animeId = req.params.id;
   try {
@@ -101,7 +113,12 @@ app.get("/mal/anime-by-id/:id", async (req, res) => {
   }
 });
 
-// === 4. Recommend based on genre ===
+// ========== Recommend Anime Based on Genre ==========
+/**
+ * Recommends anime by extracting genre from input title and filtering results.
+ * Input: title (string)
+ * Output: JSON of recommendations and the source anime
+ */
 app.get("/mal/recommend", async (req, res) => {
   const title = req.query.title;
   try {
@@ -153,7 +170,12 @@ app.get("/mal/recommend", async (req, res) => {
   }
 });
 
-// === 5. Get trending anime ===
+// ========== GET Trending Anime ==========
+/**
+ * Retrieves a list of trending (most popular) anime.
+ * Optional query: limit, offset
+ * Output: Array of anime objects with basic details
+ */
 app.get("/mal/trending", async (req, res) => {
   const limit = req.query.limit || 50;
   const offset = req.query.offset || 0;
@@ -188,7 +210,12 @@ app.get("/mal/trending", async (req, res) => {
   }
 });
 
-// === 6. Get similar anime based on anime ID ===
+// ========== GET Similar Anime ==========
+/**
+ * Retrieves anime that are similar by shared genre.
+ * Input: anime ID
+ * Output: List of anime with same genre (excluding original)
+ */
 app.get("/mal/similar/:id", async (req, res) => {
   const animeId = req.params.id;
   const limit = req.query.limit || 10;
@@ -244,7 +271,12 @@ app.get("/mal/similar/:id", async (req, res) => {
   }
 });
 
-// === 7. Search for anime ===
+// ========== GET Anime Search ==========
+/**
+ * Searches for anime using title.
+ * Input: title (string)
+ * Output: List of matching anime
+ */
 app.get('/mal/search', async (req, res) => {
   const q = req.query.title;
   try {
