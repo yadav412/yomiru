@@ -32,8 +32,8 @@ For detailed testing information, see [TESTING.md](./TESTING.md)
 
 ## links to videos
 
-[M1 presentation](https://www.youtube.com/watch?v=2dFGk3fwoT0&t=110s)
-[demo video](https://streamable.com/4pyrbh)
+- [M1 presentation](https://www.youtube.com/watch?v=2dFGk3fwoT0&t=110s)
+- [demo video](https://streamable.com/4pyrbh)
 
 
 ## link to deployed site
