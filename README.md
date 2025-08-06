@@ -2,11 +2,11 @@
 
 # Team Streams - Anime Streaming Platform
 
-## 🧪 Automated Testing
+## Automated Testing
 
 This project includes automated testing for all active features:
 
-### Quick Start
+### local deploy instructions
 ```bash
 # Install dependencies
 npm install
@@ -20,11 +20,23 @@ npm run test:integration # Integration tests
 npm run test:api         # API tests
 ```
 
+## Automated Testing
 ### Features Tested
 - **Gemini AI API** - Chatbot functionality
 - **Trace.moe API** - Anime image recognition  
 - **MyAnimeList (MAL) API** - Anime database integration
 
-Tests run automatically on GitHub Actions for every push and pull request.
 
+Tests run automatically on GitHub Actions for every push and pull request.
 For detailed testing information, see [TESTING.md](./TESTING.md)
+
+## links to videos
+
+![M1 presentation](https://www.youtube.com/watch?v=2dFGk3fwoT0&t=110s)
+
+
+## link to deployed site
+
+![yomiru](https://yomiru.netlify.app/)
+
+
