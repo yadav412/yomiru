@@ -41,3 +41,9 @@ For detailed testing information, see [TESTING.md](./TESTING.md)
 [yomiru](https://yomiru.netlify.app/)
 
 
+## links to the reports 
+- [contract](https://github.com/CMPT-276-SUMMER-2025/final-project-10-streams/blob/main/Group%20contract.pdf)
+- [m0](https://github.com/CMPT-276-SUMMER-2025/final-project-10-streams/blob/main/Team%20Streams%20-%20m0.pdf)
+- [m1](http://github.com/CMPT-276-SUMMER-2025/final-project-10-streams/blob/main/Team%20Streams%20m1.docx)
+- [m2](https://docs.google.com/document/d/1DvMWMZZ4MqAJCzHzd5JXLDWJVGOgFi7IUdgWMG7PAts/edit?tab=t.0)
+
