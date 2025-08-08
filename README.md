@@ -210,7 +210,7 @@ npm run test:automated
 
 The application is configured for deployment on:
 - **Frontend**: Netlify (static hosting)
-- **Backend**: Any Node.js hosting provider
+- **Backend**: Render
 - **Functions**: Netlify serverless functions
 
 For local production testing:
@@ -236,7 +236,7 @@ Tests run automatically on GitHub Actions for every push and pull request.
 - [Live Demo](https://streamable.com/4pyrbh) - Application walkthrough
 
 ### Live Application
-**Production Site**: [yomiru.netlify.app](https://yomiru.netlify.app/)
+**Production Site**: [Render](https://final-project-10-streams.onrender.com/)
 
 ### Project Documentation
 - [Group Contract](https://github.com/CMPT-276-SUMMER-2025/final-project-10-streams/blob/main/Group%20contract.pdf)
