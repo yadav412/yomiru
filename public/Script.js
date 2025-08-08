@@ -14,6 +14,10 @@ const desc = document.getElementById("anime-desc");
  * Also updates the displayed title and description.
  */
 function updateCenterItem() {
+  if (!carousel || items.length === 0 || !desc) {
+    return; // Exit if essential elements don't exist
+  }
+
   let centerIndex = 0;
   let minDiff = Infinity;
 
@@ -38,13 +42,29 @@ function updateCenterItem() {
 
   // Update the anime title and description shown on the page
   const activeItem = items[centerIndex];
-  title.textContent = activeItem.dataset.title;
-  desc.textContent = activeItem.dataset.desc;
+  
+  // Update title if element exists
+  if (title && activeItem.dataset.title) {
+    title.textContent = activeItem.dataset.title;
+  }
+  
+  // Update description
+  if (desc && activeItem.dataset.desc) {
+    desc.textContent = activeItem.dataset.desc;
+  }
 }
 
-// Run update logic when the carousel is scrolled
-carousel.addEventListener("scroll", () => {
-  requestAnimationFrame(updateCenterItem);
+// Initialize the carousel when page loads
+document.addEventListener("DOMContentLoaded", () => {
+  // Set initial state
+  updateCenterItem();
+  
+  // Run update logic when the carousel is scrolled
+  if (carousel) {
+    carousel.addEventListener("scroll", () => {
+      requestAnimationFrame(updateCenterItem);
+    });
+  }
 });
 
 
