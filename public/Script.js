@@ -48,9 +48,9 @@ function updateCenterItem() {
     title.textContent = activeItem.dataset.title;
   }
   
-  // Update description
+  // Update description with line breaks for steps
   if (desc && activeItem.dataset.desc) {
-    desc.textContent = activeItem.dataset.desc;
+    desc.innerHTML = (activeItem.dataset.desc || '').replace(/\\n/g, '<br>');
   }
 }
 
@@ -67,5 +67,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
+descEl.innerHTML = (item.dataset.desc || '').replaceAll('\n', '<br>');
 

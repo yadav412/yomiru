@@ -224,3 +224,5 @@ h1 {
   transition: opacity 0.3s ease;
 }
 
+/* wherever you display the description text */
+.carousel-desc { white-space: pre-line; }
