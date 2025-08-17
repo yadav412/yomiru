@@ -185,10 +185,18 @@ main {
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.6);
     margin-top: 50px;
-    padding: 20px;
+    padding: 10px;
     font-weight: 400;
     background-color: transparent;
 } 
+.copyright2 {
+    text-align: center;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0);
+    font-weight: 400;
+    background-color: transparent;
+} 
+
 
 .search-icon {
   cursor: pointer;
@@ -215,6 +223,11 @@ h1 {
   text-align: center;
   margin-top: 20px;
 
+}
+
+.socials{
+  gap: 10px;
+  padding: 5px;
 }
 
 
