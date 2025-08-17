@@ -511,3 +511,17 @@ nav button:hover, nav input:hover, nav a:hover {
 .bar.hide {
   top: -100px; 
 }
+
+
+.copyright2 {
+    text-align: center;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0);
+    font-weight: 400;
+    background-color: transparent;
+} 
+
+.socials{
+  gap: 10px;
+  padding: 5px;
+}
