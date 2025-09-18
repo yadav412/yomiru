@@ -4,3 +4,5 @@ node_modules/
 coverage/
 *.log
 .vscode/settings.json
+package-lock.json
+packages.json
