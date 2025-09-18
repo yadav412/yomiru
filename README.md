@@ -2,7 +2,12 @@
 
 # Team Streams - Anime Streaming Platform
 
-![CI](https://github.com/yadav412/yomiru/actions/workflows/ci-cd.yml/badge.svg) 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Node.js](https://img.shields.io/badge/node.js-18-green.svg)
+![Express](https://img.shields.io/badge/express-4.18-blue.svg)
+
+[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://yomiru.netlify.app/)
+
 
 A modern web application for anime discovery, featuring AI-powered recommendations, reverse image search, and comprehensive anime database integration.
 
