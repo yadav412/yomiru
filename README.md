@@ -2,6 +2,8 @@
 
 # Team Streams - Anime Streaming Platform
 
+![CI](https://github.com/yadav412/yomiru/actions/workflows/ci-cd.yml/badge.svg) 
+
 A modern web application for anime discovery, featuring AI-powered recommendations, reverse image search, and comprehensive anime database integration.
 
 ## Local Development Setup
